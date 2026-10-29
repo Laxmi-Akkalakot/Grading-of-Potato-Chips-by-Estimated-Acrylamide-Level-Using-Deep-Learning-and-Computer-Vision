@@ -1,4 +1,5 @@
 
+
 from pathlib import Path
 import math
 
@@ -7,57 +8,117 @@ from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parent.parent
 IMAGE_DIR = ROOT / "data" / "images"
-LABELS_FILE = ROOT / "data" / "labels.csv"
-OUTPUT_FILE = ROOT / "data" / "colour_analysis" / "contact_sheet.jpg"
+OUTPUT_FILE = (
+    ROOT / "data" / "colour_analysis"
+    / "misclassified_test_images.jpg"
+)
 
-df = pd.read_csv(LABELS_FILE)
+# Misclassified test images from check_predictions.py
+errors = [
+    {
+        "image": "Ch3_067_Medium_627.jpg",
+        "actual": "Medium",
+        "predicted": "Very High",
+        "confidence": 42.41,
+    },
+    {
+        "image": "Ch3_304_Very-high_6526.jpg",
+        "actual": "Very High",
+        "predicted": "High",
+        "confidence": 46.43,
+    },
+    {
+        "image": "Ch3_131_Medium_851.jpg",
+        "actual": "Medium",
+        "predicted": "Low",
+        "confidence": 72.22,
+    },
+    {
+        "image": "Ch3_296_High_1310.jpg",
+        "actual": "High",
+        "predicted": "Very High",
+        "confidence": 41.05,
+    },
+    {
+        "image": "Ch3_035_Medium_632.jpg",
+        "actual": "Medium",
+        "predicted": "Very High",
+        "confidence": 41.05,
+    },
+    {
+        "image": "Ch3_199_Medium_809.jpg",
+        "actual": "Medium",
+        "predicted": "High",
+        "confidence": 46.23,
+    },
+    {
+        "image": "Ch3_297_Medium_529.jpg",
+        "actual": "Medium",
+        "predicted": "Very High",
+        "confidence": 42.41,
+    },
+]
 
-# Show a range of measured acrylamide levels.
-df = df.sort_values("acrylamide_ug_per_kg")
-selected = pd.concat([
-    df.head(12),
-    df.iloc[len(df)//2 - 6:len(df)//2 + 6],
-    df.tail(12)
-]).drop_duplicates("image_name")
-
-thumb_w, thumb_h = 150, 145
-label_h = 48
-columns = 6
-rows = math.ceil(len(selected) / columns)
+thumb_w, thumb_h = 260, 220
+label_h = 72
+columns = 3
+rows = math.ceil(len(errors) / columns)
 
 sheet = Image.new(
     "RGB",
     (columns * thumb_w, rows * (thumb_h + label_h)),
-    "white"
+    "white",
 )
 draw = ImageDraw.Draw(sheet)
 
-for i, (_, row) in enumerate(selected.iterrows()):
-    path = IMAGE_DIR / str(row["image_name"])
+for i, item in enumerate(errors):
+    path = IMAGE_DIR / item["image"]
+
+    x = (i % columns) * thumb_w
+    y = (i // columns) * (thumb_h + label_h)
+
     if not path.exists():
+        draw.text(
+            (x + 8, y + 8),
+            f'Image not found: {item["image"]}',
+            fill="red",
+        )
         continue
 
     try:
         with Image.open(path) as im:
             im = im.convert("RGB")
-            im.thumbnail((thumb_w - 10, thumb_h - 10))
+            im.thumbnail((thumb_w - 16, thumb_h - 16))
 
-        x = (i % columns) * thumb_w
-        y = (i // columns) * (thumb_h + label_h)
+        paste_x = x + (thumb_w - im.width) // 2
+        paste_y = y + (thumb_h - im.height) // 2
+        sheet.paste(im, (paste_x, paste_y))
 
-        sheet.paste(im, (x + (thumb_w - im.width)//2, y))
         draw.text(
-            (x + 3, y + thumb_h),
-            str(row["image_name"])[:23],
-            fill="black"
+            (x + 8, y + thumb_h),
+            f'Image: {item["image"][:30]}',
+            fill="black",
         )
         draw.text(
-            (x + 3, y + thumb_h + 18),
-            f'{row["grade"]}: {row["acrylamide_ug_per_kg"]:.0f} ug/kg',
-            fill="black"
+            (x + 8, y + thumb_h + 18),
+            f'Actual: {item["actual"]}',
+            fill="black",
         )
+        draw.text(
+            (x + 8, y + thumb_h + 36),
+            f'Predicted: {item["predicted"]}',
+            fill="black",
+        )
+        draw.text(
+            (x + 8, y + thumb_h + 54),
+            f'Confidence: {item["confidence"]:.2f}%',
+            fill="black",
+        )
+
     except Exception as e:
         print("Skipped:", path.name, e)
 
+OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
 sheet.save(OUTPUT_FILE)
+
 print("Contact sheet saved to:", OUTPUT_FILE)

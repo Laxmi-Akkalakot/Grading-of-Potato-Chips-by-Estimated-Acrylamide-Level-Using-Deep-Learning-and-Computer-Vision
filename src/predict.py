@@ -8,7 +8,7 @@ import tensorflow as tf
 
 # Project paths
 ROOT = Path(__file__).resolve().parent.parent
-MODEL_PATH = ROOT / "models" / "acrylamide_grade.keras"
+MODEL_PATH = ROOT / "models" / "acrylamide_grade_checkpoint.keras"
 CLASSES_PATH = ROOT / "models" / "grade_classes.json"
 
 IMAGE_SIZE = (160, 160)

@@ -76,10 +76,16 @@ print(df["grade"].value_counts())
 # ==========================================
 encoder = LabelEncoder()
 df["label"] = encoder.fit_transform(df["grade"])
-
 print("\nClass mapping:")
 for index, name in enumerate(encoder.classes_):
-    print(index, "=", name)
+    print(f"{index}: {name}")
+
+print("\nDataset grade counts:")
+print(df["grade"].value_counts())
+
+print("\nEncoded label counts:")
+print(df["label"].value_counts().sort_index())
+
 
 # ==========================================
 # 4. SPLIT DATA (70 / 15 / 15)
@@ -211,6 +217,7 @@ print("\nClass weights:")
 for label, weight in class_weights.items():
     print(encoder.classes_[label], ":", round(weight, 3))
 
+
 history = model.fit(
     train_ds,
     validation_data=val_ds,
@@ -218,11 +225,59 @@ history = model.fit(
     callbacks=callbacks,
     class_weight=class_weights
 )
+# Save training history for analysis
+import pandas as pd
+import matplotlib.pyplot as plt
 
+history_df = pd.DataFrame(history.history)
+history_df.to_csv(MODEL_DIR / "training_history.csv", index=False)
+
+print("\nTraining history:")
+print(history_df.round(4).to_string(index=False))
+
+# Plot training and validation loss
+plt.figure(figsize=(8, 5))
+plt.plot(history.history["loss"], label="Training Loss")
+plt.plot(history.history["val_loss"], label="Validation Loss")
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.title("Training vs Validation Loss")
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.savefig(MODEL_DIR / "loss_curve.png", dpi=150)
+plt.show()
+
+# Plot training and validation accuracy
+plt.figure(figsize=(8, 5))
+plt.plot(history.history["accuracy"], label="Training Accuracy")
+plt.plot(history.history["val_accuracy"], label="Validation Accuracy")
+plt.xlabel("Epoch")
+plt.ylabel("Accuracy")
+plt.title("Training vs Validation Accuracy")
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.savefig(MODEL_DIR / "accuracy_curve.png", dpi=150)
+plt.show()
+
+print("\nTraining history saved to:", MODEL_DIR / "training_history.csv")
+print("Loss curve saved to:", MODEL_DIR / "loss_curve.png")
+print("Accuracy curve saved to:", MODEL_DIR / "accuracy_curve.png")
+
+# Load the checkpoint with the best validation loss
+BEST_MODEL_PATH = MODEL_DIR / "acrylamide_grade_checkpoint.keras"
 FINAL_MODEL_PATH = MODEL_DIR / "acrylamide_grade_final.keras"
-model.save(FINAL_MODEL_PATH)
 
+best_model = tf.keras.models.load_model(BEST_MODEL_PATH)
+
+# Save a copy of the best model under the standard model filename
+best_model.save(MODEL_PATH)
+best_model.save(FINAL_MODEL_PATH)
+
+print("Best model saved to:", MODEL_PATH)
 print("Final model saved to:", FINAL_MODEL_PATH)
+
 
 with open(CLASSES_PATH, "w", encoding="utf-8") as file:
     json.dump(encoder.classes_.tolist(), file, indent=2)
@@ -233,14 +288,13 @@ print("Class names saved to:", CLASSES_PATH)
 # ==========================================
 # 8. EVALUATE ON HELD-OUT TEST DATA
 # ==========================================
-test_loss, test_accuracy = model.evaluate(test_ds, verbose=1)
+test_loss, test_accuracy = best_model.evaluate(test_ds, verbose=1)
 
 print(f"\nTest loss: {test_loss:.4f}")
 print(f"Test accuracy: {test_accuracy:.4f}")
 
 true_labels = np.concatenate([labels.numpy() for _, labels in test_ds])
-
-probabilities = model.predict(test_ds, verbose=1)
+probabilities = best_model.predict(test_ds, verbose=1)
 predicted_labels = np.argmax(probabilities, axis=1)
 
 all_labels = np.arange(len(encoder.classes_))
