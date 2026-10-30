@@ -1,0 +1,13 @@
+Model,Grade,Correct,Incorrect,Total,Accuracy (%)
+Original CNN,High,0,9,9,0.0
+Original CNN,Low,19,0,19,100.0
+Original CNN,Medium,0,15,15,0.0
+Original CNN,Very High,0,4,4,0.0
+MobileNetV2 V2,High,4,5,9,44.44
+MobileNetV2 V2,Low,18,1,19,94.74
+MobileNetV2 V2,Medium,10,5,15,66.67
+MobileNetV2 V2,Very High,3,1,4,75.0
+Fine-tuned MobileNetV2 V3,High,7,2,9,77.78
+Fine-tuned MobileNetV2 V3,Low,18,1,19,94.74
+Fine-tuned MobileNetV2 V3,Medium,10,5,15,66.67
+Fine-tuned MobileNetV2 V3,Very High,2,2,4,50.0

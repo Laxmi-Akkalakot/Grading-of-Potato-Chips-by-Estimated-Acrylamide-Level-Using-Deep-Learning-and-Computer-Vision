@@ -1,0 +1,121 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Potato Chip Acrylamide Grading</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <header class="header">
+        <h1>Potato Chip Quality Analysis</h1>
+        <p>AI-Based Acrylamide Grade and Concentration Estimation</p>
+    </header>
+
+    <main class="container">
+
+        <section class="intro">
+            <h2>Analyze Your Potato Chips</h2>
+            <p>
+                Upload a potato chips image to estimate its
+                acrylamide grade and numerical value using
+                deep learning and computer vision.
+            </p>
+        </section>
+
+        <section class="upload-card">
+            <h3>Upload Potato Chips Image</h3>
+
+            <div class="upload-area" id="uploadArea">
+
+                <input
+                    type="file"
+                    id="imageInput"
+                    accept="image/png, image/jpeg"
+                    hidden
+                >
+
+                <div id="uploadContent">
+                    <div class="upload-icon">📁</div>
+                    <p>Click here to select an image</p>
+                    <span>Supported formats: JPG, JPEG, PNG</span>
+                </div>
+
+                <img
+                    id="imagePreview"
+                    src=""
+                    alt="Selected potato chips image"
+                    style="display: none;"
+                >
+            </div>
+
+            <button id="predictButton" disabled>
+                Predict Acrylamide Grade and Value
+            </button>
+
+            <p id="statusMessage" class="status-message"></p>
+        </section>
+
+        <section class="result-card" id="resultCard" style="display: none;">
+
+            <h3>Prediction Results</h3>
+
+            <p>Estimated Acrylamide Grade</p>
+            <h2 id="gradeResult">--</h2>
+
+            <p>
+                Estimated Acrylamide Value:
+                <strong id="valueResult">--</strong> µg/kg
+            </p>
+
+            <p>
+                MobileNetV2 Classification Confidence:
+                <strong id="confidenceResult">--</strong>
+            </p>
+
+            <p id="predictionDisclaimer" class="disclaimer">
+                Experimental image-based estimate.
+                Not a direct chemical measurement.
+            </p>
+
+        </section>
+
+        <section class="information">
+            <h3>About This System</h3>
+
+            <p>
+                This system combines two machine learning approaches:
+                MobileNetV2 deep learning for classifying potato chips
+                into Low, Medium, High and Very High categories, and
+                Random Forest regression using image colour features
+                to estimate a numerical acrylamide value.
+            </p>
+
+            <p class="disclaimer">
+                Note: The numerical value is an experimental
+                image-based estimate derived from dataset-associated
+                labels. It is not a direct chemical measurement and
+                does not replace laboratory testing. Classification
+                confidence is not the probability that the estimated
+                acrylamide concentration is correct.
+            </p>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>
+            AI-Based Potato Chip Grading System |
+            Deep Learning and Computer Vision
+        </p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+</html>

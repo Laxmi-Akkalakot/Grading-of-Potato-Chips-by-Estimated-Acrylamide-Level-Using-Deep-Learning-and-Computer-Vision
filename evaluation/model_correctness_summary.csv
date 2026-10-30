@@ -1,0 +1,4 @@
+Model,Correct Predictions,Incorrect Predictions,Total Images,Accuracy (%)
+Original CNN,19,28,47,40.43
+MobileNetV2 V2,35,12,47,74.47
+Fine-tuned MobileNetV2 V3,37,10,47,78.72

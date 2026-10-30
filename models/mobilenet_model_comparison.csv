@@ -1,0 +1,3 @@
+Model,Test Accuracy (%)
+acrylamide_grade_v2.keras,72.34
+acrylamide_grade_v3.keras,76.6

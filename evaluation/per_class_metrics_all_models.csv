@@ -1,0 +1,13 @@
+Model,Grade,Precision (%),Recall (%),F1-score (%),Support
+Original CNN,High,0.0,0.0,0.0,9
+Original CNN,Low,40.43,100.0,57.58,19
+Original CNN,Medium,0.0,0.0,0.0,15
+Original CNN,Very High,0.0,0.0,0.0,4
+MobileNetV2 V2,High,66.67,44.44,53.33,9
+MobileNetV2 V2,Low,90.0,94.74,92.31,19
+MobileNetV2 V2,Medium,76.92,66.67,71.43,15
+MobileNetV2 V2,Very High,37.5,75.0,50.0,4
+Fine-tuned MobileNetV2 V3,High,70.0,77.78,73.68,9
+Fine-tuned MobileNetV2 V3,Low,90.0,94.74,92.31,19
+Fine-tuned MobileNetV2 V3,Medium,83.33,66.67,74.07,15
+Fine-tuned MobileNetV2 V3,Very High,40.0,50.0,44.44,4
