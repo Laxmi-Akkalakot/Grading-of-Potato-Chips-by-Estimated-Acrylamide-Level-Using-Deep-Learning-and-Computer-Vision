@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}Live Camera | Grading of Potato Chips by Estimated Acrylamide Level{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="text-center mb-4">
+        <h1>
+        </h1>
+        <h2 class="h4 text-muted mt-3">
+            <i class="bi bi-camera-video"></i> Live Camera Analysis
+        </h2>
+        <p class="text-muted">
+            Capture potato chips using your camera and analyse them to estimate their acrylamide level.
+        </p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm p-3">
+                <video id="cameraVideo"
+                       autoplay
+                       playsinline
+                       muted
+                       class="w-100 rounded"
+                       style="background:#111; max-height:450px; object-fit:contain;">
+                </video>
+
+                <canvas id="captureCanvas" hidden></canvas>
+
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <button id="startCamera" class="btn btn-primary">
+                        <i class="bi bi-camera-video"></i> Start Camera
+                    </button>
+
+                    <button id="captureButton" class="btn btn-success" disabled>
+                        <i class="bi bi-camera"></i> Capture &amp; Analyse
+                    </button>
+
+                    <button id="stopCamera" class="btn btn-outline-danger" disabled>
+                        Stop Camera
+                    </button>
+                </div>
+
+                <p id="cameraStatus" class="text-muted mt-3 mb-0">
+                    Click Start Camera to begin.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm p-3">
+                <h5>Analysis Result</h5>
+
+                <div id="resultArea" class="py-4 text-center">
+                    <i class="bi bi-image text-muted" style="font-size:45px;"></i>
+                    <p class="text-muted mt-2">
+                        Your prediction will appear here.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const video = document.getElementById("cameraVideo");
+const canvas = document.getElementById("captureCanvas");
+
+const startButton = document.getElementById("startCamera");
+const captureButton = document.getElementById("captureButton");
+const stopButton = document.getElementById("stopCamera");
+
+const statusText = document.getElementById("cameraStatus");
+const resultArea = document.getElementById("resultArea");
+
+let cameraStream = null;
+
+function stopStream() {
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+    }
+}
+
+startButton.addEventListener("click", async () => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        statusText.textContent =
+            "Camera is not available here. Browsers allow the camera only on " +
+            "localhost or HTTPS pages. Use the Upload page instead.";
+        return;
+    }
+
+    stopStream();
+
+    try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: { ideal: "environment" },
+                width: { ideal: 640 },
+                height: { ideal: 480 },
+                frameRate: { ideal: 15, max: 20 }
+            },
+            audio: false
+        });
+
+        video.srcObject = cameraStream;
+        captureButton.disabled = false;
+        stopButton.disabled = false;
+
+        statusText.textContent = "Camera ready. Show the potato chips clearly.";
+    } catch (error) {
+        statusText.textContent = "Camera access failed: " + error.message;
+    }
+});
+
+stopButton.addEventListener("click", () => {
+    stopStream();
+
+    video.srcObject = null;
+    captureButton.disabled = true;
+    stopButton.disabled = true;
+    statusText.textContent = "Camera stopped.";
+});
+
+captureButton.addEventListener("click", () => {
+    if (!cameraStream || !video.videoWidth) {
+        statusText.textContent = "Please start the camera first.";
+        return;
+    }
+
+    captureButton.disabled = true;
+    statusText.textContent = "Analysing image. Please wait...";
+    const startedAt = performance.now();
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const context = canvas.getContext("2d");
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(async (blob) => {
+        try {
+            if (!blob) throw new Error("Image capture failed.");
+
+            const formData = new FormData();
+            formData.append("image", blob, "camera_capture.jpg");
+
+            const response = await fetch("/api/predict", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || "Prediction failed.");
+            }
+
+            showAnalysis(data);
+            const seconds = ((performance.now() - startedAt) / 1000).toFixed(1);
+            statusText.textContent =
+                "Analysis completed in " + seconds + " seconds.";
+        } catch (error) {
+            statusText.textContent = error.message;
+        } finally {
+            captureButton.disabled = !cameraStream;
+        }
+    }, "image/jpeg", 0.80);
+});
+
+function formatFeature(value) {
+    if (value === undefined || value === null || value === "") return "N/A";
+    const number = Number(value);
+    return Number.isFinite(number) ? number.toFixed(2) : String(value);
+}
+
+function showAnalysis(data) {
+    resultArea.replaceChildren();
+    resultArea.classList.remove("text-center");
+
+    const heading = document.createElement("h5");
+    heading.textContent = "Prediction Result";
+
+    const estimate = document.createElement("h2");
+    const value = Number(data.estimated_acrylamide_ug_per_kg);
+    estimate.textContent = Number.isFinite(value)
+        ? value.toFixed(2) + " µg/kg"
+        : "Estimate unavailable";
+
+    const estimateLabel = document.createElement("p");
+    estimateLabel.className = "text-muted mb-1";
+    estimateLabel.textContent = "Estimated acrylamide level";
+
+    const grade = document.createElement("h5");
+    grade.textContent = "Visual/model grade: " + (data.grade || "Not available");
+
+    resultArea.append(heading, estimate, estimateLabel, grade);
+
+    if (data.preview_jpeg_base64) {
+        const previewTitle = document.createElement("h6");
+        previewTitle.className = "mt-4";
+        previewTitle.textContent = "Processing Preview";
+
+        const preview = document.createElement("img");
+        preview.src = "data:image/jpeg;base64," + data.preview_jpeg_base64;
+        preview.className = "img-fluid rounded mb-3";
+        preview.alt = "Processed potato chip image preview";
+
+        resultArea.append(previewTitle, preview);
+    }
+
+    const featureNames = {
+        mean_red: "Mean Red",
+        mean_green: "Mean Green",
+        mean_blue: "Mean Blue",
+        mean_hue: "Mean Hue",
+        mean_saturation: "Mean Saturation",
+        mean_value: "Mean Brightness (HSV)",
+        brightness: "Grayscale Brightness",
+        foreground_fraction: "Foreground Fraction"
+    };
+
+    if (data.features) {
+        const featureTitle = document.createElement("h6");
+        featureTitle.textContent = "Extracted Image Features";
+        resultArea.appendChild(featureTitle);
+
+        const table = document.createElement("table");
+        table.className = "table table-sm table-bordered";
+        const body = document.createElement("tbody");
+
+        for (const [key, label] of Object.entries(featureNames)) {
+            const row = document.createElement("tr");
+
+            const nameCell = document.createElement("td");
+            nameCell.textContent = label;
+
+            const valueCell = document.createElement("td");
+            valueCell.textContent = formatFeature(data.features[key]);
+
+            row.append(nameCell, valueCell);
+            body.appendChild(row);
+        }
+
+        table.appendChild(body);
+        resultArea.appendChild(table);
+    }
+
+    const disclaimer = document.createElement("p");
+    disclaimer.className = "small text-muted";
+    disclaimer.textContent = data.disclaimer ||
+        "Image-based research estimate. Laboratory verification is required.";
+    resultArea.appendChild(disclaimer);
+
+    const historyLink = document.createElement("a");
+    historyLink.href = "/history";
+    historyLink.className = "btn btn-outline-primary mt-2";
+    historyLink.textContent = "View Prediction History";
+    resultArea.appendChild(historyLink);
+}
+
+window.addEventListener("beforeunload", stopStream);
+</script>
+{% endblock %}

@@ -1,0 +1,52 @@
+{
+    "test_metrics": {
+        "accuracy": 1.0,
+        "loss": 0.004170068074017763,
+        "precision": 1.0,
+        "recall": 1.0
+    },
+    "classification_report": {
+        "Not Potato Chips": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 47.0
+        },
+        "Potato Chips": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 46.0
+        },
+        "accuracy": 1.0,
+        "macro avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 93.0
+        },
+        "weighted avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 93.0
+        }
+    },
+    "confusion_matrix": [
+        [
+            47,
+            0
+        ],
+        [
+            0,
+            46
+        ]
+    ],
+    "training_images": 434,
+    "validation_images": 93,
+    "test_images": 93,
+    "threshold": 0.5,
+    "positive_class": "potato_chips",
+    "negative_class": "not_potato_chips",
+    "warning": "Random split; near-duplicate images may inflate metrics."
+}

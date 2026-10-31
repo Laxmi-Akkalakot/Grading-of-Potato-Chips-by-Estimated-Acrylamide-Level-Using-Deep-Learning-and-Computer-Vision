@@ -1,15 +1,35 @@
 {% extends "base.html" %}
-{% block title %}Model Performance | PotatoGuard AI{% endblock %}
+
+{% block title %}Model Performance | Grading of Potato Chips by Estimated Acrylamide Level{% endblock %}
+
 {% block content %}
-<h1>Model performance</h1>
-<p>{{ performance.disclaimer }}</p>
-<div class="panel mb-4">
-    <h2>Registered best model</h2>
-    <p><strong>{{ performance.best_model.model or "Unavailable" }}</strong></p>
-    <p class="small text-muted">{{ performance.best_model.selection_basis or performance.best_model.error }}</p>
+
+{# Safe defaults so the page still loads if the data helper failed #}
+{% set perf = performance or {} %}
+{% set best = perf.best_model or {} %}
+{% set rows = perf.comparison or [] %}
+
+<div class="text-center mb-4">
+    <h1>
+    </h1>
+    <h2 class="h4 text-muted mt-3">Model performance</h2>
+    {% if perf.disclaimer %}
+        <p class="text-muted">{{ perf.disclaimer }}</p>
+    {% endif %}
 </div>
-<div class="panel">
-    <h2>Comparison</h2>
+
+<div class="panel p-3 mb-4">
+    <h2 class="h4">Registered best model</h2>
+    <p><strong>{{ best.model or "Unavailable" }}</strong></p>
+    {% if best.selection_basis or best.error %}
+        <p class="small text-muted">{{ best.selection_basis or best.error }}</p>
+    {% endif %}
+</div>
+
+<div class="panel p-3">
+    <h2 class="h4">Comparison</h2>
+
+    {% if rows %}
     <div class="table-responsive">
         <table class="table">
             <thead>
@@ -22,7 +42,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for row in performance.comparison %}
+                {% for row in rows %}
                     <tr>
                         <td>{{ row.model }}</td>
                         <td>{% if row.accuracy is not none %}{{ (row.accuracy * 100) | round(2) }}%{% else %}—{% endif %}</td>
@@ -34,13 +54,24 @@
             </tbody>
         </table>
     </div>
+    {% else %}
+        <p class="text-muted">No model comparison results are available yet.</p>
+    {% endif %}
 </div>
+
 <div class="row g-3 mt-2">
     <div class="col-md-6">
-        <img class="img-fluid rounded" alt="Class distribution" src="{{ url_for('result_figure', filename='class_distribution.png') }}" onerror="this.style.display='none'">
+        <img class="img-fluid rounded"
+             alt="Class distribution"
+             src="{{ url_for('result_figure', filename='class_distribution.png') }}"
+             onerror="this.style.display='none'">
     </div>
     <div class="col-md-6">
-        <img class="img-fluid rounded" alt="Model comparison" src="{{ url_for('result_figure', filename='model_comparison.png') }}" onerror="this.style.display='none'">
+        <img class="img-fluid rounded"
+             alt="Model comparison"
+             src="{{ url_for('result_figure', filename='model_comparison.png') }}"
+             onerror="this.style.display='none'">
     </div>
 </div>
+
 {% endblock %}

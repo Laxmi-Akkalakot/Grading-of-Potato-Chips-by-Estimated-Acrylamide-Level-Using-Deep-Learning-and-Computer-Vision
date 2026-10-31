@@ -1,16 +1,16 @@
-
 {% extends "base.html" %}
 
-{% block title %}Prediction Results | PotatoGuard AI{% endblock %}
+{% block title %}Prediction Results | Grading of Potato Chips by Estimated Acrylamide Level{% endblock %}
 
 {% block content %}
 
 <div class="container py-4">
 
     <div class="text-center mb-4">
-        <h1>Potato Chips Acrylamide Prediction</h1>
-        <p class="text-muted">
-            AI-based estimation using computer vision and machine learning
+        <h1 class="text-center">
+        </h1>
+        <p class="text-center text-muted">
+            Estimated acrylamide level from image analysis
         </p>
     </div>
 
@@ -30,7 +30,7 @@
                         src="data:image/jpeg;base64,{{ result.preview_jpeg_base64 }}"
                     >
                 {% else %}
-                    <p>Image preview is unavailable.</p>
+                    <p class="text-muted">Image preview is unavailable.</p>
                 {% endif %}
             </div>
         </div>
@@ -39,7 +39,7 @@
         <div class="col-lg-7">
             <div class="panel p-4">
 
-                <p class="eyebrow">AI Prediction Result</p>
+                <p class="eyebrow">Prediction Result</p>
 
                 <h2 class="mb-3">
                     Estimated Acrylamide Concentration
@@ -47,9 +47,9 @@
 
                 {% if result.estimated_acrylamide_ug_per_kg is not none %}
 
-                    <h1 class="display-4 fw-bold">
+                    <div class="display-4 fw-bold">
                         {{ result.estimated_acrylamide_ug_per_kg }}
-                    </h1>
+                    </div>
 
                     <p class="text-muted">µg/kg</p>
 

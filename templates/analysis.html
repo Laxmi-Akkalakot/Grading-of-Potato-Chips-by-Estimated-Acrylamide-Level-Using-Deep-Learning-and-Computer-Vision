@@ -1,19 +1,38 @@
 {% extends "base.html" %}
-{% block title %}Image Analysis | PotatoGuard AI{% endblock %}
+
+{% block title %}Image Analysis | Grading of Potato Chips by Estimated Acrylamide Level{% endblock %}
+
 {% block content %}
-<h1>Image analysis</h1>
-<p>Colour and brightness describe visual appearance. They are not laboratory acrylamide measurements.</p>
+
+<div class="text-center mb-4">
+    <h1>
+    </h1>
+    <h2 class="h4 text-muted mt-3">Image Analysis</h2>
+    <p class="text-muted">
+        Colour and brightness describe visual appearance. They are not laboratory acrylamide measurements.
+    </p>
+</div>
+
 {% if result %}
     <div class="row g-4">
         <div class="col-lg-6">
             {% if result.preview_jpeg_base64 %}
-                <img class="img-fluid rounded" alt="Original, enhanced, masked, overlay" src="data:image/jpeg;base64,{{ result.preview_jpeg_base64 }}">
-                <p class="small text-muted mt-2">Left to right: original, enhanced preview, segmented chip, overlay.</p>
+                <img class="img-fluid rounded"
+                     alt="Original, enhanced, masked, overlay"
+                     src="data:image/jpeg;base64,{{ result.preview_jpeg_base64 }}">
+                <p class="small text-muted mt-2">
+                    Left to right: original, enhanced preview, segmented chip, overlay.
+                </p>
+            {% else %}
+                <p class="text-muted">Image preview is unavailable.</p>
             {% endif %}
         </div>
+
         <div class="col-lg-6">
-            <div class="panel">
-                <h2>Extracted features</h2>
+            <div class="panel p-3">
+                <h2 class="h4">Extracted features</h2>
+
+                {% if result.features %}
                 <table class="table">
                     <tbody>
                         <tr><th>Mean R</th><td>{{ result.features.mean_red }}</td></tr>
@@ -26,10 +45,17 @@
                         <tr><th>Saturation</th><td>{{ result.features.saturation }}</td></tr>
                     </tbody>
                 </table>
+                {% else %}
+                    <p class="text-muted">Feature values are unavailable.</p>
+                {% endif %}
             </div>
         </div>
     </div>
 {% else %}
-    <p>Run a prediction first so analysis has an image to describe. <a href="{{ url_for('upload') }}">Upload</a></p>
+    <p class="text-center">
+        Run a prediction first so analysis has an image to describe.
+        <a href="{{ url_for('upload') }}">Upload</a>
+    </p>
 {% endif %}
+
 {% endblock %}

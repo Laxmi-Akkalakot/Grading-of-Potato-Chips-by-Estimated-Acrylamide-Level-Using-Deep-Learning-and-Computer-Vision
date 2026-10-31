@@ -12,7 +12,20 @@ import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-ROOT = Path(__file__).resolve().parent.parent
+
+def _find_project_root() -> Path:
+    """Walk upward from this file until the folder containing config.py."""
+    here = Path(__file__).resolve()
+    for parent in here.parents:
+        if (parent / "config.py").exists():
+            return parent
+    raise RuntimeError(
+        "Could not find config.py above " + str(here) + ". "
+        "Keep this file inside the PotatoGuard project folder."
+    )
+
+
+ROOT = _find_project_root()
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
@@ -44,18 +57,25 @@ def _metrics(y_true, y_pred) -> dict:
     return {"mae": mae, "rmse": rmse, "r2": r2}
 
 
+def _require(path: Path) -> Path:
+    if not path.exists():
+        raise FileNotFoundError(f"Required file not found: {path}")
+    return path
+
+
 def main() -> Path:
     ensure_runtime_dirs()
+
     features_path = PROCESSED_DIR / "image_features.csv"
     if not features_path.exists():
         from src.feature_extraction import extract_dataset_features
 
         extract_dataset_features()
 
-    features = pd.read_csv(features_path)
-    train_split = pd.read_csv(DATA_DIR / "regression_train_split.csv")
-    val_split = pd.read_csv(DATA_DIR / "regression_validation_split.csv")
-    test_split = pd.read_csv(DATA_DIR / "regression_test_split.csv")
+    features = pd.read_csv(_require(features_path))
+    train_split = pd.read_csv(_require(DATA_DIR / "regression_train_split.csv"))
+    val_split = pd.read_csv(_require(DATA_DIR / "regression_validation_split.csv"))
+    test_split = pd.read_csv(_require(DATA_DIR / "regression_test_split.csv"))
 
     def merge(split_df: pd.DataFrame) -> pd.DataFrame:
         merged = split_df.merge(features, on="image_name", suffixes=("", "_feat"))
@@ -67,7 +87,13 @@ def main() -> Path:
     train_df = merge(train_split)
     val_df = merge(val_split)
     test_df = merge(test_split)
-    print("Regression rows:", len(train_df), len(val_df), len(test_df))
+    print("Regression rows (train, val, test):", len(train_df), len(val_df), len(test_df))
+
+    if min(len(train_df), len(val_df), len(test_df)) == 0:
+        raise ValueError(
+            "One of the splits is empty after merging. Check that image_name "
+            "values match between the split CSVs and image_features.csv."
+        )
 
     model = RandomForestRegressor(
         n_estimators=300,
@@ -98,7 +124,10 @@ def main() -> Path:
         out_path,
     )
 
-    pred_path = RESULTS_DIR / "metrics" / "regression_test_predictions.csv"
+    metrics_dir = RESULTS_DIR / "metrics"
+    metrics_dir.mkdir(parents=True, exist_ok=True)
+
+    pred_path = metrics_dir / "regression_test_predictions.csv"
     test_out = test_df[["image_name", "acrylamide_ug_per_kg"]].copy()
     test_out["predicted_acrylamide_ug_per_kg"] = test_pred
     test_out["absolute_error"] = (
@@ -114,7 +143,7 @@ def main() -> Path:
         "n_test": int(len(test_df)),
         "disclaimer": "Estimated concentration from image features, not lab measurement.",
     }
-    (RESULTS_DIR / "metrics" / "regression_metrics.json").write_text(
+    (metrics_dir / "regression_metrics.json").write_text(
         json.dumps(summary, indent=2), encoding="utf-8"
     )
     print("Saved", out_path)

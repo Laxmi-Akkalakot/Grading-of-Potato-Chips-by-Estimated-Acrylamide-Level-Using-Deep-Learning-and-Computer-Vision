@@ -1,0 +1,5 @@
+{
+  "note": "Colour and brightness features describe image appearance. They are not laboratory measurements of acrylamide.",
+  "n_rows": 310,
+  "output": "C:\\Users\\siddu\\OneDrive\\Documents\\GitHub\\Grading-of-Potato-Chips-by-Estimated-Acrylamide-Level-Using-Deep-Learning-and-Computer-Vision\\data\\processed\\image_features.csv"
+}

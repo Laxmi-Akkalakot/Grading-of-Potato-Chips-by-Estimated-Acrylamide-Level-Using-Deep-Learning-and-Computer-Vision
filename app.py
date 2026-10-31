@@ -32,6 +32,9 @@ from src.dashboard_data import dataset_overview, performance_bundle
 from src.db import delete_prediction, init_db, insert_prediction, list_predictions
 from src.safeguards import ModelReliabilityError
 
+# Set to False to turn off the debug printout in the terminal.
+DEBUG_PREDICTIONS = True
+
 app = Flask(__name__)
 app.secret_key = os.environ.get("POTATOGUARD_SECRET", "potatoguard-dev-key")
 app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_MB * 1024 * 1024
@@ -41,6 +44,11 @@ _predictor = None
 
 def allowed_file(filename: str) -> bool:
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def allowed_formats_text() -> str:
+    names = sorted(ext.upper() for ext in ALLOWED_EXTENSIONS)
+    return ", ".join(names)
 
 
 def predictor_or_error():
@@ -65,6 +73,24 @@ def safe_call(func, default, *args, **kwargs):
     except Exception as exc:
         print(f"{func.__name__} failed:", exc)
         return default
+
+
+def debug_prediction(filename: str, image_bytes: bytes, result: dict) -> None:
+    """Print prediction details to the terminal. Never raises."""
+    if not DEBUG_PREDICTIONS:
+        return
+    try:
+        print("\n========== PREDICTION DEBUG ==========")
+        print("Filename:", filename)
+        print("Image bytes:", len(image_bytes))
+        print("Estimated value:", result.get("estimated_acrylamide_ug_per_kg"))
+        print("Predicted grade:", result.get("grade"))
+        print("Class confidences:", result.get("class_confidences"))
+        print("Model version:", result.get("model_version"))
+        print("Extracted features:", result.get("features"))
+        print("======================================\n")
+    except Exception as exc:
+        print("Debug print failed:", exc)
 
 
 @app.context_processor
@@ -98,6 +124,11 @@ def index():
 @app.route("/upload")
 def upload():
     return render_template("upload.html", predictor_error=predictor_or_error()[1])
+
+
+@app.route("/camera")
+def camera_page():
+    return render_template("camera.html", predictor_error=predictor_or_error()[1])
 
 
 @app.route("/results")
@@ -190,8 +221,16 @@ def api_predict():
     file = request.files["image"]
     if file.filename == "":
         return jsonify({"error": "No image selected."}), 400
-    if not allowed_file(file.filename):
-        return jsonify({"error": "Only JPG, JPEG and PNG images are allowed."}), 400
+
+    filename = file.filename
+    # Camera captures may arrive without a file extension.
+    if "." not in filename:
+        filename = f"{filename}.jpg"
+
+    if not allowed_file(filename):
+        return jsonify(
+            {"error": f"Only {allowed_formats_text()} images are allowed."}
+        ), 400
 
     image_bytes = file.read()
     try:
@@ -203,20 +242,26 @@ def api_predict():
     try:
         from src.predict import predict_image_bytes
 
-        result = predict_image_bytes(image_bytes, file.filename)
+        result = predict_image_bytes(image_bytes, filename)
     except ModelReliabilityError as exc:
         return jsonify({"error": str(exc)}), 400
     except Exception as exc:
         print("Prediction error:", exc)
         return jsonify({"error": "Prediction failed. Please try again."}), 500
 
-    insert_prediction(
-        filename=result["filename"],
-        grade=result["grade"],
-        confidences=result["class_confidences"],
-        model_version=result["model_version"],
-        estimated_ug_per_kg=result.get("estimated_acrylamide_ug_per_kg"),
-    )
+    debug_prediction(filename, image_bytes, result)
+
+    try:
+        insert_prediction(
+            filename=result["filename"],
+            grade=result["grade"],
+            confidences=result["class_confidences"],
+            model_version=result["model_version"],
+            estimated_ug_per_kg=result.get("estimated_acrylamide_ug_per_kg"),
+        )
+    except Exception as exc:
+        print("Could not save prediction to history:", exc)
+
     session["last_prediction"] = {
         key: value
         for key, value in result.items()

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Upload Image | PotatoGuard AI{% endblock %}
+{% block title %}Upload Image | Grading of Potato Chips by Estimated Acrylamide Level{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -289,7 +289,9 @@
     <!-- PAGE HEADER -->
     <div class="page-heading">
         <div class="page-eyebrow">AI-powered food quality analysis</div>
-        <h1 class="page-title">Upload Potato Chips Image</h1>
+        <h1 class="page-title">
+        </h1>
+        <h2 class="h5 text-muted mt-2">Upload Potato Chips Image</h2>
         <p class="page-subtitle">
             Upload a clear potato chips image to estimate its acrylamide concentration and grade.
         </p>
@@ -444,7 +446,7 @@
                             id="submitButton"
                             disabled>
                         <i class="bi bi-stars"></i>
-                        Analyze with PotatoGuard AI
+                        Analyze Image
                     </button>
 
                 </form>
@@ -741,7 +743,7 @@
             progressPercent.textContent = "Please wait";
         } else {
             submitButton.innerHTML =
-                '<i class="bi bi-stars"></i> Analyze with PotatoGuard AI';
+                '<i class="bi bi-stars"></i> Analyze Image';
 
             uploadProgress.classList.remove("visible");
             submitButton.disabled = !selectedFile;
@@ -798,7 +800,7 @@
             window.location.assign("/results");
 
         } catch (error) {
-            console.error("PotatoGuard upload error:", error);
+            console.error("Upload error:", error);
 
             setLoading(false);
 

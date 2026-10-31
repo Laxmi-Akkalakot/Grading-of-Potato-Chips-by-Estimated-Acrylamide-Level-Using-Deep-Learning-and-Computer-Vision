@@ -1,8 +1,18 @@
 {% extends "base.html" %}
-{% block title %}History | PotatoGuard AI{% endblock %}
+
+{% block title %}History | Grading of Potato Chips by Estimated Acrylamide Level{% endblock %}
+
 {% block content %}
-<h1>Prediction history</h1>
-<p>Stored in local SQLite. Uploaded images are not kept on disk.</p>
+
+<div class="text-center mb-4">
+    <h1>
+    </h1>
+    <h2 class="h4 text-muted mt-3">Prediction history</h2>
+    <p class="text-muted">
+        Stored in local SQLite. Uploaded images are not kept on disk.
+    </p>
+</div>
+
 {% if records %}
     <div class="table-responsive panel">
         <table class="table align-middle">
@@ -24,12 +34,20 @@
                         <td>{{ row.id }}</td>
                         <td>{{ row.image_filename }}</td>
                         <td>{{ row.predicted_grade }}</td>
-                        <td class="small">{{ row.confidence_scores }}</td>
+                        <td class="small">
+                            {% if row.confidence_scores and row.confidence_scores not in ('{}', '[]') %}
+                                {{ row.confidence_scores }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
                         <td>{{ row.estimated_ug_per_kg if row.estimated_ug_per_kg is not none else "—" }}</td>
                         <td>{{ row.model_version }}</td>
                         <td>{{ row.created_at }}</td>
                         <td>
-                            <form method="post" action="{{ url_for('history_delete', item_id=row.id) }}">
+                            <form method="post"
+                                  action="{{ url_for('history_delete', item_id=row.id) }}"
+                                  onsubmit="return confirm('Delete this prediction?');">
                                 <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
                             </form>
                         </td>
@@ -39,6 +57,7 @@
         </table>
     </div>
 {% else %}
-    <p>No history yet.</p>
+    <p class="text-center">No history yet.</p>
 {% endif %}
+
 {% endblock %}

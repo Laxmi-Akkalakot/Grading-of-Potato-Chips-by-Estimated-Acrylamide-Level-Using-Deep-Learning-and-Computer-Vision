@@ -1,0 +1,16 @@
+{
+  "validation": {
+    "mae": 303.1340436473841,
+    "rmse": 602.3512373496807,
+    "r2": 0.5184706609017427
+  },
+  "test": {
+    "mae": 393.1036508947307,
+    "rmse": 864.4500295229367,
+    "r2": 0.4386240223368266
+  },
+  "n_train": 217,
+  "n_val": 46,
+  "n_test": 47,
+  "disclaimer": "Estimated concentration from image features, not lab measurement."
+}
