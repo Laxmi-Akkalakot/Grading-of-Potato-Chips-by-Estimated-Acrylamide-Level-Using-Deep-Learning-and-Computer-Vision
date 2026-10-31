@@ -1,0 +1,1222 @@
+
+{% extends "base.html" %}
+
+{% block title %}About the Project | PotatoGuard AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .about-hero {
+        position: relative;
+        overflow: hidden;
+        padding: 42px;
+        color: white;
+        background: linear-gradient(120deg, #172554, #1e40af 65%, #2563eb);
+        border-radius: 22px;
+        box-shadow: 0 12px 32px rgba(30, 64, 175, .17);
+    }
+
+    .about-hero::after {
+        position: absolute;
+        right: -70px;
+        bottom: -140px;
+        width: 330px;
+        height: 330px;
+        border: 45px solid rgba(255,255,255,.07);
+        border-radius: 50%;
+        content: "";
+    }
+
+    .hero-label {
+        display: inline-block;
+        margin-bottom: 18px;
+        padding: 7px 12px;
+        color: #dbeafe;
+        background: rgba(255,255,255,.12);
+        border: 1px solid rgba(255,255,255,.15);
+        border-radius: 30px;
+        font-size: 10px;
+        font-weight: 750;
+        letter-spacing: 1.4px;
+        text-transform: uppercase;
+    }
+
+    .hero-project-title {
+        max-width: 900px;
+        margin: 0;
+        font-size: clamp(25px, 4vw, 42px);
+        font-weight: 800;
+        line-height: 1.2;
+        letter-spacing: -1.3px;
+    }
+
+    .hero-description {
+        max-width: 760px;
+        margin-top: 18px;
+        color: #dbeafe;
+        font-size: 14px;
+        line-height: 1.8;
+    }
+
+    .hero-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 23px;
+    }
+
+    .hero-meta span {
+        padding: 7px 11px;
+        color: #eff6ff;
+        background: rgba(255,255,255,.11);
+        border-radius: 8px;
+        font-size: 10px;
+        font-weight: 650;
+    }
+
+    .about-section {
+        margin-top: 38px;
+    }
+
+    .section-kicker {
+        margin-bottom: 7px;
+        color: #1e40af;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 1.4px;
+        text-transform: uppercase;
+    }
+
+    .section-title {
+        margin: 0;
+        color: #172033;
+        font-size: 23px;
+        font-weight: 800;
+        letter-spacing: -.6px;
+    }
+
+    .section-description {
+        max-width: 780px;
+        margin-top: 9px;
+        color: #64748b;
+        font-size: 13px;
+        line-height: 1.8;
+    }
+
+    .science-card {
+        height: 100%;
+        padding: 23px;
+        background: white;
+        border: 1px solid #e8edf4;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(15,23,42,.035);
+    }
+
+    .science-icon {
+        display: grid;
+        width: 44px;
+        height: 44px;
+        margin-bottom: 16px;
+        place-items: center;
+        color: #1e40af;
+        background: #eff6ff;
+        border-radius: 12px;
+        font-size: 20px;
+    }
+
+    .science-card h5 {
+        margin-bottom: 9px;
+        color: #172033;
+        font-size: 14px;
+        font-weight: 750;
+    }
+
+    .science-card p {
+        margin: 0;
+        color: #64748b;
+        font-size: 12px;
+        line-height: 1.8;
+    }
+
+    .reaction-panel {
+        padding: 25px;
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: 17px;
+    }
+
+    .reaction-flow {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin: 24px 0;
+    }
+
+    .reaction-node {
+        min-width: 145px;
+        padding: 15px;
+        color: #92400e;
+        background: white;
+        border: 1px solid #fcd34d;
+        border-radius: 12px;
+        text-align: center;
+        font-size: 12px;
+        font-weight: 750;
+    }
+
+    .reaction-node small {
+        display: block;
+        margin-top: 5px;
+        color: #a16207;
+        font-size: 10px;
+        font-weight: 500;
+    }
+
+    .reaction-arrow {
+        color: #d97706;
+        font-size: 21px;
+    }
+
+    .reaction-note {
+        color: #78350f;
+        font-size: 11px;
+        line-height: 1.8;
+    }
+
+    .safety-panel {
+        padding: 24px;
+        background: #fff7ed;
+        border: 1px solid #fed7aa;
+        border-left: 4px solid #f97316;
+        border-radius: 14px;
+    }
+
+    .safety-panel h5 {
+        color: #9a3412;
+        font-size: 15px;
+        font-weight: 800;
+    }
+
+    .safety-panel p {
+        margin-bottom: 0;
+        color: #7c2d12;
+        font-size: 12px;
+        line-height: 1.8;
+    }
+
+    .workflow-step {
+        position: relative;
+        height: 100%;
+        padding: 21px 17px;
+        background: white;
+        border: 1px solid #e8edf4;
+        border-radius: 14px;
+        text-align: center;
+    }
+
+    .workflow-number {
+        display: grid;
+        width: 35px;
+        height: 35px;
+        margin: 0 auto 12px;
+        place-items: center;
+        color: white;
+        background: #1e40af;
+        border-radius: 11px;
+        font-size: 13px;
+        font-weight: 800;
+    }
+
+    .workflow-step h6 {
+        margin-bottom: 6px;
+        font-size: 12px;
+        font-weight: 750;
+    }
+
+    .workflow-step p {
+        margin: 0;
+        color: #64748b;
+        font-size: 10px;
+        line-height: 1.7;
+    }
+
+    .architecture-panel {
+        padding: 25px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 17px;
+    }
+
+    .architecture-layer {
+        max-width: 650px;
+        margin: 0 auto;
+        padding: 14px;
+        background: white;
+        border: 1px solid #dbeafe;
+        border-radius: 11px;
+        text-align: center;
+    }
+
+    .architecture-layer strong {
+        display: block;
+        color: #1e3a8a;
+        font-size: 12px;
+    }
+
+    .architecture-layer span {
+        color: #64748b;
+        font-size: 10px;
+    }
+
+    .architecture-arrow {
+        margin: 5px 0;
+        color: #1e40af;
+        text-align: center;
+        font-size: 17px;
+    }
+
+    .tech-item {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        height: 100%;
+        padding: 14px;
+        background: white;
+        border: 1px solid #e8edf4;
+        border-radius: 12px;
+    }
+
+    .tech-item i {
+        color: #1e40af;
+        font-size: 21px;
+    }
+
+    .tech-item strong {
+        display: block;
+        color: #172033;
+        font-size: 11px;
+    }
+
+    .tech-item small {
+        color: #64748b;
+        font-size: 10px;
+    }
+
+    .model-result {
+        padding: 21px;
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+        border-radius: 14px;
+    }
+
+    .model-result h6 {
+        color: #1e3a8a;
+        font-size: 13px;
+        font-weight: 800;
+    }
+
+    .model-result .metric {
+        color: #1e40af;
+        font-size: 24px;
+        font-weight: 800;
+    }
+
+    .model-result p {
+        margin: 5px 0 0;
+        color: #64748b;
+        font-size: 10px;
+    }
+
+    .limitation-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 11px;
+        margin-bottom: 16px;
+    }
+
+    .limitation-item i {
+        margin-top: 2px;
+        color: #d97706;
+    }
+
+    .limitation-item strong {
+        display: block;
+        color: #172033;
+        font-size: 12px;
+    }
+
+    .limitation-item p {
+        margin: 3px 0 0;
+        color: #64748b;
+        font-size: 11px;
+        line-height: 1.7;
+    }
+
+    .reference-list li {
+        margin-bottom: 10px;
+        color: #64748b;
+        font-size: 11px;
+        line-height: 1.7;
+    }
+
+    .reference-list a {
+        color: #1e40af;
+        font-weight: 650;
+    }
+
+    .about-final {
+        padding: 26px;
+        color: white;
+        background: #172554;
+        border-radius: 17px;
+    }
+
+    .about-final h4 {
+        font-size: 17px;
+        font-weight: 800;
+    }
+
+    .about-final p {
+        margin: 8px 0 0;
+        color: #dbeafe;
+        font-size: 12px;
+        line-height: 1.8;
+    }
+
+    @media (max-width: 575px) {
+        .about-hero { padding: 25px 20px; }
+        .reaction-arrow { transform: rotate(90deg); }
+        .section-title { font-size: 20px; }
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<!-- PROJECT HERO -->
+<section class="about-hero">
+    <div class="position-relative" style="z-index:1;">
+        <div class="hero-label">
+            <i class="bi bi-shield-check me-1"></i>
+            PotatoGuard AI · Academic Research Project
+        </div>
+
+        <h1 class="hero-project-title">
+            Grading of Potato Chips by Estimated Acrylamide Level Using Deep Learning and Computer Vision
+        </h1>
+
+        <p class="hero-description">
+            A research-oriented intelligent food-quality analysis system that
+            combines computer vision, image processing and machine learning
+            to estimate acrylamide levels in fried potato chips from their
+            visual characteristics.
+        </p>
+
+        <div class="hero-meta">
+            <span><i class="bi bi-eye me-1"></i> Computer Vision</span>
+            <span><i class="bi bi-cpu me-1"></i> Deep Learning</span>
+            <span><i class="bi bi-graph-up me-1"></i> Regression</span>
+            <span><i class="bi bi-shield-check me-1"></i> Food Quality Research</span>
+        </div>
+    </div>
+</section>
+
+
+<!-- PROJECT INTRODUCTION -->
+<section class="about-section">
+    <div class="section-kicker">01 · Introduction</div>
+    <h2 class="section-title">About the Project</h2>
+
+    <p class="section-description">
+        PotatoGuard AI is an image-based research application designed to
+        analyze fried potato chip images and estimate their acrylamide
+        concentration. The system uses visual information such as colour,
+        browning and image-derived features to support automated sample
+        assessment. It provides a numerical estimate and maps the result
+        into project-defined categories: Low, Medium, High and Very High.
+    </p>
+
+    <div class="row g-3 mt-2">
+        <div class="col-md-4">
+            <div class="science-card">
+                <div class="science-icon"><i class="bi bi-bullseye"></i></div>
+                <h5>Project Objective</h5>
+                <p>
+                    Develop an image-processing and machine-learning pipeline
+                    for research-based estimation of acrylamide levels in
+                    fried potato chips.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="science-card">
+                <div class="science-icon"><i class="bi bi-camera"></i></div>
+                <h5>Visual Analysis</h5>
+                <p>
+                    Extract colour, texture and image characteristics that
+                    may be associated with frying and browning conditions.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="science-card">
+                <div class="science-icon"><i class="bi bi-clipboard-data"></i></div>
+                <h5>Prediction Output</h5>
+                <p>
+                    Present an estimated concentration in µg/kg together
+                    with a project-defined grade.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- PROBLEM STATEMENT -->
+<section class="about-section">
+    <div class="section-kicker">02 · Research Motivation</div>
+    <h2 class="section-title">Problem Statement</h2>
+
+    <div class="app-card mt-3">
+        <p class="section-description mt-0">
+            Acrylamide can form in potato products during high-temperature
+            frying. Its concentration can vary with potato composition,
+            reducing sugar content, processing temperature, cooking time
+            and other conditions.
+        </p>
+
+        <p class="section-description">
+            Laboratory measurement provides analytical evidence, but
+            requires sample preparation, specialized equipment and trained
+            personnel. This project investigates whether computer vision
+            and machine learning can provide a preliminary image-based
+            screening estimate that supports research and quality-analysis
+            workflows.
+        </p>
+
+        <span class="soft-badge badge-blue">
+            Research focus: image-based estimation, not chemical detection
+        </span>
+    </div>
+</section>
+
+
+<!-- ACRYLAMIDE FORMATION -->
+<section class="about-section">
+    <div class="section-kicker">03 · Food Chemistry</div>
+    <h2 class="section-title">Acrylamide Formation in Fried Potatoes</h2>
+
+    <p class="section-description">
+        Acrylamide is a process contaminant that can naturally form in
+        carbohydrate-rich foods during high-temperature cooking, including
+        frying, roasting and baking. Potato chips and French fries are
+        examples of foods in which it can occur.
+    </p>
+
+    <div class="reaction-panel mt-3">
+        <h5 class="fw-bold mb-1" style="color:#92400e;">
+            Maillard Reaction and Acrylamide Formation
+        </h5>
+
+        <p class="reaction-note">
+            A major pathway involves the reaction of the amino acid
+            asparagine with reducing sugars during heating.
+        </p>
+
+        <div class="reaction-flow">
+            <div class="reaction-node">
+                <i class="bi bi-flower1 fs-4 d-block mb-2"></i>
+                Free Asparagine
+                <small>Amino acid naturally present in potatoes</small>
+            </div>
+
+            <div class="reaction-arrow">
+                <i class="bi bi-plus-lg"></i>
+            </div>
+
+            <div class="reaction-node">
+                <i class="bi bi-droplet-half fs-4 d-block mb-2"></i>
+                Reducing Sugars
+                <small>Glucose and fructose</small>
+            </div>
+
+            <div class="reaction-arrow">
+                <i class="bi bi-arrow-right"></i>
+            </div>
+
+            <div class="reaction-node">
+                <i class="bi bi-fire fs-4 d-block mb-2"></i>
+                High-Temperature Heating
+                <small>Frying and other cooking conditions</small>
+            </div>
+
+            <div class="reaction-arrow">
+                <i class="bi bi-arrow-right"></i>
+            </div>
+
+            <div class="reaction-node">
+                <i class="bi bi-beaker fs-4 d-block mb-2"></i>
+                Acrylamide
+                <small>One product formed through relevant reaction pathways</small>
+            </div>
+        </div>
+
+        <p class="reaction-note mb-0">
+            The Maillard reaction also contributes to the colour, aroma and
+            flavour of cooked foods. Acrylamide formation is influenced by
+            several processing and ingredient factors; visible browning
+            alone does not determine its concentration.
+        </p>
+    </div>
+</section>
+
+
+<!-- FOOD SAFETY -->
+<section class="about-section">
+    <div class="section-kicker">04 · Food Safety</div>
+    <h2 class="section-title">Food Safety Significance</h2>
+
+    <div class="row g-3 mt-2">
+        <div class="col-lg-7">
+            <div class="science-card">
+                <div class="science-icon" style="color:#f97316;background:#fff7ed;">
+                    <i class="bi bi-shield-exclamation"></i>
+                </div>
+
+                <h5>Why Acrylamide Matters</h5>
+
+                <p>
+                    Acrylamide has been studied for its genotoxic and
+                    carcinogenic properties. Laboratory animal studies have
+                    demonstrated carcinogenic effects at experimental
+                    exposure levels. The potential health implications of
+                    dietary exposure remain an important subject of
+                    scientific and regulatory assessment.
+                </p>
+
+                <p class="mt-3">
+                    Food-safety research therefore investigates how
+                    acrylamide forms, how exposure can be reduced and how
+                    levels in foods can be monitored.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="safety-panel h-100">
+                <h5>
+                    <i class="bi bi-journal-medical me-2"></i>
+                    IARC Classification
+                </h5>
+
+                <div class="display-5 fw-bold my-3" style="color:#c2410c;">
+                    Group 2A
+                </div>
+
+                <p>
+                    The International Agency for Research on Cancer
+                    classifies acrylamide as
+                    <strong>probably carcinogenic to humans</strong>.
+                </p>
+
+                <p class="mt-3">
+                    This is a hazard classification. It does not mean that
+                    every exposure causes cancer or quantify the risk from
+                    eating a particular serving of potato chips.
+                </p>
+
+                <a class="small fw-bold"
+                   href="https://monographs.iarc.who.int/agents-classified-by-the-iarc/"
+                   target="_blank" rel="noopener noreferrer">
+                    IARC classification reference
+                    <i class="bi bi-box-arrow-up-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- COMPUTER VISION -->
+<section class="about-section">
+    <div class="section-kicker">05 · Image Processing</div>
+    <h2 class="section-title">Computer Vision Methodology</h2>
+
+    <p class="section-description">
+        The image-processing pipeline prepares the uploaded sample and
+        extracts visual information for prediction. OpenCV supports image
+        loading, resizing, colour-space conversion, segmentation and
+        feature extraction.
+    </p>
+
+    <div class="row g-3 mt-2">
+        <div class="col-sm-6 col-lg-3">
+            <div class="science-card">
+                <div class="science-icon"><i class="bi bi-image"></i></div>
+                <h5>Image Acquisition</h5>
+                <p>
+                    Load the uploaded potato chip image and validate its
+                    image format and dimensions.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="science-card">
+                <div class="science-icon"><i class="bi bi-aspect-ratio"></i></div>
+                <h5>Preprocessing</h5>
+                <p>
+                    Resize the image and prepare pixel data for consistent
+                    downstream processing.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="science-card">
+                <div class="science-icon"><i class="bi bi-scissors"></i></div>
+                <h5>Segmentation</h5>
+                <p>
+                    Apply image segmentation to distinguish relevant chip
+                    regions from the background where supported by the
+                    processing pipeline.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="science-card">
+                <div class="science-icon"><i class="bi bi-palette"></i></div>
+                <h5>Feature Extraction</h5>
+                <p>
+                    Extract image-derived colour and statistical features
+                    for the model pipeline.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- DEEP LEARNING AND REGRESSION -->
+<section class="about-section">
+    <div class="section-kicker">06 · Machine Learning</div>
+    <h2 class="section-title">Deep Learning and Prediction Architecture</h2>
+
+    <p class="section-description">
+        The project uses classification evaluation and a separate numerical
+        regression pipeline. These outputs represent different tasks and
+        should not be treated as interchangeable.
+    </p>
+
+    <div class="row g-3 mt-2">
+        <div class="col-lg-6">
+            <div class="app-card h-100">
+                <span class="soft-badge badge-blue mb-3">
+                    Classification evaluation
+                </span>
+
+                <h5 class="card-heading">Fine-tuned MobileNetV2 V3</h5>
+
+                <p class="section-description">
+                    A transfer-learning image-classification architecture
+                    evaluated for the project’s grade-classification task.
+                    Its reported performance is based on the available
+                    evaluation files.
+                </p>
+
+                <div class="model-result mt-3">
+                    <h6>Published evaluation results</h6>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-6">
+                            <div class="metric">78.72%</div>
+                            <p>Test accuracy</p>
+                        </div>
+
+                        <div class="col-6">
+                            <div class="metric">71.13%</div>
+                            <p>Macro F1-score</p>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-secondary mt-3 mb-0" style="font-size:10px;">
+                    These metrics describe the evaluated classification
+                    model, not the chemical accuracy of the regression
+                    estimate.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="app-card h-100">
+                <span class="soft-badge badge-gold mb-3">
+                    Numerical regression
+                </span>
+
+                <h5 class="card-heading">Random Forest Regression</h5>
+
+                <p class="section-description">
+                    The application's active legacy regression model
+                    estimates a numerical acrylamide value from
+                    image-derived features. The estimate is then mapped
+                    to the project's four grade bands.
+                </p>
+
+                <div class="p-3 mt-3 rounded-3"
+                     style="background:#fffbeb;border:1px solid #fde68a;">
+                    <div class="fw-bold small" style="color:#92400e;">
+                        Numerical output
+                    </div>
+                    <div class="fs-4 fw-bold mt-2" style="color:#b45309;">
+                        Estimated µg/kg
+                    </div>
+                    <div class="text-secondary" style="font-size:10px;">
+                        Research estimate generated by the regression model
+                    </div>
+                </div>
+
+                <p class="text-secondary mt-3 mb-0" style="font-size:10px;">
+                    Regression accuracy must be assessed separately using
+                    suitable laboratory reference measurements and
+                    regression metrics.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- SYSTEM WORKFLOW -->
+<section class="about-section">
+    <div class="section-kicker">07 · Application Pipeline</div>
+    <h2 class="section-title">System Workflow</h2>
+
+    <p class="section-description">
+        The following diagram summarizes the application's intended
+        image-analysis flow.
+    </p>
+
+    <div class="architecture-panel mt-3">
+
+        <div class="row g-3">
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="workflow-step">
+                    <div class="workflow-number">1</div>
+                    <h6>Image Upload</h6>
+                    <p>User selects a potato chips image.</p>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="workflow-step">
+                    <div class="workflow-number">2</div>
+                    <h6>Validation</h6>
+                    <p>Check file type, size and image integrity.</p>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="workflow-step">
+                    <div class="workflow-number">3</div>
+                    <h6>Preprocessing</h6>
+                    <p>Resize and prepare the image.</p>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="workflow-step">
+                    <div class="workflow-number">4</div>
+                    <h6>Segmentation</h6>
+                    <p>Process relevant chip regions.</p>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="workflow-step">
+                    <div class="workflow-number">5</div>
+                    <h6>Feature Extraction</h6>
+                    <p>Generate image-derived feature values.</p>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="workflow-step">
+                    <div class="workflow-number">6</div>
+                    <h6>Model Prediction</h6>
+                    <p>Run the configured regression pipeline.</p>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="workflow-step">
+                    <div class="workflow-number">7</div>
+                    <h6>Grade Mapping</h6>
+                    <p>Map the estimate to a project-defined grade.</p>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="workflow-step">
+                    <div class="workflow-number">8</div>
+                    <h6>Results</h6>
+                    <p>Display and store the prediction record.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ARCHITECTURE -->
+<section class="about-section">
+    <div class="section-kicker">08 · Technical Architecture</div>
+    <h2 class="section-title">Application Architecture</h2>
+
+    <div class="architecture-panel mt-3">
+
+        <div class="architecture-layer">
+            <strong><i class="bi bi-person-circle me-2"></i>User Interface</strong>
+            <span>HTML · CSS · Bootstrap · JavaScript</span>
+        </div>
+
+        <div class="architecture-arrow">
+            <i class="bi bi-arrow-down"></i>
+        </div>
+
+        <div class="architecture-layer">
+            <strong><i class="bi bi-globe me-2"></i>Flask Application</strong>
+            <span>Routes · Upload API · Validation · Session management</span>
+        </div>
+
+        <div class="architecture-arrow">
+            <i class="bi bi-arrow-down"></i>
+        </div>
+
+        <div class="architecture-layer">
+            <strong><i class="bi bi-image me-2"></i>Computer Vision Pipeline</strong>
+            <span>OpenCV · Preprocessing · Segmentation · Feature Extraction</span>
+        </div>
+
+        <div class="architecture-arrow">
+            <i class="bi bi-arrow-down"></i>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="architecture-layer h-100">
+                    <strong><i class="bi bi-cpu me-2"></i>Classification Evaluation</strong>
+                    <span>Fine-tuned MobileNetV2 V3</span>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="architecture-layer h-100">
+                    <strong><i class="bi bi-graph-up me-2"></i>Regression Prediction</strong>
+                    <span>Random Forest model · Estimated µg/kg</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="architecture-arrow">
+            <i class="bi bi-arrow-down"></i>
+        </div>
+
+        <div class="architecture-layer">
+            <strong><i class="bi bi-database me-2"></i>SQLite and Results Interface</strong>
+            <span>Prediction history · Stored records · Results display</span>
+        </div>
+    </div>
+</section>
+
+
+<!-- TECHNOLOGY STACK -->
+<section class="about-section">
+    <div class="section-kicker">09 · Implementation</div>
+    <h2 class="section-title">Technology Stack</h2>
+
+    <div class="row g-3 mt-2">
+        <div class="col-6 col-md-4">
+            <div class="tech-item">
+                <i class="bi bi-filetype-html"></i>
+                <div><strong>HTML5</strong><small>Page structure</small></div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4">
+            <div class="tech-item">
+                <i class="bi bi-filetype-css"></i>
+                <div><strong>CSS3</strong><small>Responsive styling</small></div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4">
+            <div class="tech-item">
+                <i class="bi bi-bootstrap"></i>
+                <div><strong>Bootstrap 5.3</strong><small>UI framework</small></div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4">
+            <div class="tech-item">
+                <i class="bi bi-filetype-js"></i>
+                <div><strong>JavaScript</strong><small>Frontend interactions</small></div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4">
+            <div class="tech-item">
+                <i class="bi bi-filetype-py"></i>
+                <div><strong>Python</strong><small>Application and ML logic</small></div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4">
+            <div class="tech-item">
+                <i class="bi bi-camera"></i>
+                <div><strong>OpenCV</strong><small>Image processing</small></div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4">
+            <div class="tech-item">
+                <i class="bi bi-diagram-3"></i>
+                <div><strong>TensorFlow / Keras</strong><small>Deep learning evaluation</small></div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4">
+            <div class="tech-item">
+                <i class="bi bi-graph-up"></i>
+                <div><strong>Scikit-learn</strong><small>Machine learning and regression</small></div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4">
+            <div class="tech-item">
+                <i class="bi bi-database"></i>
+                <div><strong>SQLite</strong><small>Prediction history</small></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- PROJECT LIMITATIONS -->
+<section class="about-section">
+    <div class="section-kicker">10 · Scientific Validity</div>
+    <h2 class="section-title">Project Limitations</h2>
+
+    <div class="app-card mt-3">
+        <div class="limitation-item">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>
+                <strong>Visual appearance is not chemical measurement</strong>
+                <p>
+                    Chip colour and browning may be associated with processing
+                    conditions, but they cannot directly reveal the actual
+                    acrylamide concentration.
+                </p>
+            </div>
+        </div>
+
+        <div class="limitation-item">
+            <i class="bi bi-database-exclamation"></i>
+            <div>
+                <strong>Dataset limitations</strong>
+                <p>
+                    Model performance depends on dataset size, diversity,
+                    label quality, sample preparation and representative
+                    training and testing splits.
+                </p>
+            </div>
+        </div>
+
+        <div class="limitation-item">
+            <i class="bi bi-sliders"></i>
+            <div>
+                <strong>Processing variability</strong>
+                <p>
+                    Potato variety, sugar content, frying temperature,
+                    duration, oil conditions, lighting and camera settings
+                    may influence the image or the underlying acrylamide
+                    level.
+                </p>
+            </div>
+        </div>
+
+        <div class="limitation-item mb-0">
+            <i class="bi bi-clipboard-check"></i>
+            <div>
+                <strong>Independent laboratory validation</strong>
+                <p>
+                    The regression model must be validated against
+                    representative laboratory-measured reference samples
+                    before its estimates can be considered reliable for
+                    operational food-safety decisions.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- FUTURE SCOPE -->
+<section class="about-section">
+    <div class="section-kicker">11 · Future Development</div>
+    <h2 class="section-title">Future Scope</h2>
+
+    <div class="row g-3 mt-2">
+        <div class="col-md-6">
+            <div class="science-card">
+                <div class="science-icon"><i class="bi bi-beaker"></i></div>
+                <h5>Laboratory-Validated Dataset</h5>
+                <p>
+                    Collect a larger dataset with image samples paired with
+                    laboratory-measured acrylamide concentrations.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="science-card">
+                <div class="science-icon"><i class="bi bi-robot"></i></div>
+                <h5>Advanced Model Development</h5>
+                <p>
+                    Investigate improved CNN architectures, transfer
+                    learning, feature fusion and regression algorithms.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="science-card">
+                <div class="science-icon"><i class="bi bi-camera-video"></i></div>
+                <h5>Controlled Image Acquisition</h5>
+                <p>
+                    Develop a standardized image-capture setup with
+                    controlled illumination, camera settings and sample
+                    positioning.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="science-card">
+                <div class="science-icon"><i class="bi bi-graph-up-arrow"></i></div>
+                <h5>Model Explainability</h5>
+                <p>
+                    Add explainability techniques, uncertainty estimates
+                    and independent performance monitoring.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- LABORATORY CONFIRMATION -->
+<section class="about-section">
+    <div class="safety-panel">
+        <h5>
+            <i class="bi bi-flask-fill me-2"></i>
+            Laboratory Confirmation Is Essential
+        </h5>
+
+        <p>
+            PotatoGuard AI provides image-based research estimates only.
+            It does not chemically detect or directly measure acrylamide.
+            Confirmation requires a validated analytical laboratory method,
+            such as gas chromatography–mass spectrometry (GC-MS) or
+            liquid chromatography–mass spectrometry (LC-MS/MS), with
+            suitable sample preparation and quality-control procedures.
+            HPLC-based methods may also be used where validated for the
+            intended matrix and measurement purpose.
+        </p>
+    </div>
+</section>
+
+
+<!-- REFERENCES -->
+<section class="about-section">
+    <div class="section-kicker">12 · Scientific References</div>
+    <h2 class="section-title">Further Reading</h2>
+
+    <div class="app-card mt-3">
+        <ol class="reference-list mb-0">
+            <li>
+                European Food Safety Authority (EFSA).
+                <strong>Acrylamide.</strong>
+                <a href="https://www.efsa.europa.eu/en/topics/topic/acrylamide"
+                   target="_blank" rel="noopener noreferrer">
+                    Read EFSA scientific background
+                </a>.
+            </li>
+
+            <li>
+                International Agency for Research on Cancer (IARC).
+                <strong>Agents Classified by the IARC Monographs.</strong>
+                <a href="https://monographs.iarc.who.int/agents-classified-by-the-iarc/"
+                   target="_blank" rel="noopener noreferrer">
+                    View IARC classifications
+                </a>.
+            </li>
+
+            <li>
+                European Commission.
+                <strong>Acrylamide in Food.</strong>
+                <a href="https://food.ec.europa.eu/food-safety/chemical-safety/contaminants/catalogue/acrylamide_en"
+                   target="_blank" rel="noopener noreferrer">
+                    Read food-safety information
+                </a>.
+            </li>
+
+            <li>
+                Mottram, D. S., Wedzicha, B. L. and Dodson, A. T. (2002).
+                <strong>Acrylamide is formed in the Maillard reaction.</strong>
+                Nature, 419, 448–449.
+                <a href="https://doi.org/10.1038/419448A"
+                   target="_blank" rel="noopener noreferrer">
+                    Read research paper
+                </a>.
+            </li>
+
+            <li>
+                U.S. Food and Drug Administration (FDA).
+                <strong>Acrylamide Questions and Answers.</strong>
+                <a href="https://www.fda.gov/food/process-contaminants-food/acrylamide-questions-and-answers"
+                   target="_blank" rel="noopener noreferrer">
+                    Read FDA guidance
+                </a>.
+            </li>
+        </ol>
+    </div>
+</section>
+
+
+<!-- FINAL DISCLAIMER -->
+<section class="about-section mb-3">
+    <div class="about-final">
+        <h4>
+            <i class="bi bi-shield-check me-2"></i>
+            Research and Academic Use
+        </h4>
+
+        <p>
+            This project demonstrates the application of computer vision
+            and machine learning to food-quality research. Its predictions
+            are estimates derived from image appearance and model outputs.
+            They are not laboratory measurements, medical advice, regulatory
+            assessments or a guarantee of food safety. The project's grade
+            thresholds are research-defined categories and are not official
+            regulatory safety limits.
+        </p>
+    </div>
+</section>
+
+{% endblock %}

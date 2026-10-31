@@ -1,121 +1,461 @@
+{% extends "base.html" %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Potato Chip Acrylamide Grading</title>
+{% block title %}Dashboard | PotatoGuard AI{% endblock %}
 
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='css/style.css') }}">
-</head>
+{% block content %}
 
-<body>
-
-    <header class="header">
-        <h1>Potato Chip Quality Analysis</h1>
-        <p>AI-Based Acrylamide Grade and Concentration Estimation</p>
-    </header>
-
-    <main class="container">
-
-        <section class="intro">
-            <h2>Analyze Your Potato Chips</h2>
-            <p>
-                Upload a potato chips image to estimate its
-                acrylamide grade and numerical value using
-                deep learning and computer vision.
+<!-- PAGE HEADER -->
+<div class="page-heading">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+            <div class="page-eyebrow">Food Safety Intelligence Platform</div>
+            <h1 class="page-title">Dashboard Overview</h1>
+            <p class="page-subtitle">
+                Monitor your potato chip dataset, model performance and analysis system.
             </p>
-        </section>
+        </div>
 
-        <section class="upload-card">
-            <h3>Upload Potato Chips Image</h3>
+        <a href="/upload" class="btn btn-primary-custom">
+            <i class="bi bi-cloud-arrow-up"></i>
+            Analyze New Image
+        </a>
+    </div>
+</div>
 
-            <div class="upload-area" id="uploadArea">
+{% if predictor_error %}
+<div class="alert alert-warning border-0 rounded-3">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    Prediction system notice: {{ predictor_error }}
+</div>
+{% endif %}
 
-                <input
-                    type="file"
-                    id="imageInput"
-                    accept="image/png, image/jpeg"
-                    hidden
-                >
 
-                <div id="uploadContent">
-                    <div class="upload-icon">📁</div>
-                    <p>Click here to select an image</p>
-                    <span>Supported formats: JPG, JPEG, PNG</span>
+<!-- DATASET STATISTICS -->
+<div class="row g-3 mb-4">
+
+    <div class="col-6 col-xl-3">
+        <div class="app-card stat-card"
+             style="--stat-color:#1e40af; --stat-soft:#eff6ff;">
+            <div class="stat-top">
+                <div class="stat-icon">
+                    <i class="bi bi-images"></i>
+                </div>
+                <span class="soft-badge badge-blue">Dataset</span>
+            </div>
+            <div class="stat-label">Total Images</div>
+            <div class="stat-value">
+                {{ dataset.total_images | default(0) }}
+            </div>
+            <div class="stat-footnote">Available labeled samples</div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-3">
+        <div class="app-card stat-card"
+             style="--stat-color:#10b981; --stat-soft:#ecfdf5;">
+            <div class="stat-top">
+                <div class="stat-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <span class="soft-badge badge-green">Low</span>
+            </div>
+            <div class="stat-label">Low Grade Images</div>
+            <div class="stat-value">
+                {{ dataset.class_counts.get('Low', 0) }}
+            </div>
+            <div class="stat-footnote">Low project-defined grade</div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-3">
+        <div class="app-card stat-card"
+             style="--stat-color:#d97706; --stat-soft:#fffbeb;">
+            <div class="stat-top">
+                <div class="stat-icon">
+                    <i class="bi bi-bar-chart"></i>
+                </div>
+                <span class="soft-badge badge-gold">Medium</span>
+            </div>
+            <div class="stat-label">Medium Grade Images</div>
+            <div class="stat-value">
+                {{ dataset.class_counts.get('Medium', 0) }}
+            </div>
+            <div class="stat-footnote">Medium project-defined grade</div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-3">
+        <div class="app-card stat-card"
+             style="--stat-color:#ef4444; --stat-soft:#fef2f2;">
+            <div class="stat-top">
+                <div class="stat-icon">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <span class="soft-badge badge-red">High + Very High</span>
+            </div>
+            <div class="stat-label">High Grade Images</div>
+            <div class="stat-value">
+                {{ dataset.class_counts.get('High', 0) + dataset.class_counts.get('Very High', 0) }}
+            </div>
+            <div class="stat-footnote">Combined high-grade samples</div>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- MAIN DASHBOARD CONTENT -->
+<div class="row g-4 mb-4">
+
+    <!-- DATASET DISTRIBUTION -->
+    <div class="col-lg-7">
+        <div class="app-card">
+
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div>
+                    <h5 class="card-heading">Dataset Distribution</h5>
+                    <p class="card-subheading">
+                        Image count across the four acrylamide grade classes
+                    </p>
                 </div>
 
-                <img
-                    id="imagePreview"
-                    src=""
-                    alt="Selected potato chips image"
-                    style="display: none;"
-                >
+                <a href="/dataset" class="btn btn-outline-custom">
+                    View Dataset <i class="bi bi-arrow-right ms-1"></i>
+                </a>
             </div>
 
-            <button id="predictButton" disabled>
-                Predict Acrylamide Grade and Value
-            </button>
+            {% set total = dataset.total_images | default(0) %}
 
-            <p id="statusMessage" class="status-message"></p>
-        </section>
+            {% for class_name, css_class in [
+                ('Low', 'progress-low'),
+                ('Medium', 'progress-medium'),
+                ('High', 'progress-high'),
+                ('Very High', 'progress-very-high')
+            ] %}
 
-        <section class="result-card" id="resultCard" style="display: none;">
+                {% set count = dataset.class_counts.get(class_name, 0) %}
+                {% if total > 0 %}
+                    {% set percentage = (count / total * 100) %}
+                {% else %}
+                    {% set percentage = 0 %}
+                {% endif %}
 
-            <h3>Prediction Results</h3>
+                <div class="class-row">
+                    <div class="class-row-header">
+                        <span>{{ class_name }}</span>
+                        <span class="class-count">
+                            {{ count }} images · {{ "%.1f"|format(percentage) }}%
+                        </span>
+                    </div>
 
-            <p>Estimated Acrylamide Grade</p>
-            <h2 id="gradeResult">--</h2>
+                    <div class="progress class-progress">
+                        <div class="progress-bar {{ css_class }}"
+                             role="progressbar"
+                             style="width: {{ percentage }}%;"
+                             aria-valuenow="{{ percentage }}"
+                             aria-valuemin="0"
+                             aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
 
-            <p>
-                Estimated Acrylamide Value:
-                <strong id="valueResult">--</strong> µg/kg
-            </p>
+            {% endfor %}
 
-            <p>
-                MobileNetV2 Classification Confidence:
-                <strong id="confidenceResult">--</strong>
-            </p>
+            <div class="mt-4 pt-3 border-top">
+                <div class="d-flex justify-content-between">
+                    <span class="text-secondary small">Total labeled images</span>
+                    <strong>{{ total }}</strong>
+                </div>
+            </div>
 
-            <p id="predictionDisclaimer" class="disclaimer">
-                Experimental image-based estimate.
-                Not a direct chemical measurement.
-            </p>
+        </div>
+    </div>
 
-        </section>
 
-        <section class="information">
-            <h3>About This System</h3>
+    <!-- ACRYLAMIDE DATA SUMMARY -->
+    <div class="col-lg-5">
+        <div class="app-card">
 
-            <p>
-                This system combines two machine learning approaches:
-                MobileNetV2 deep learning for classifying potato chips
-                into Low, Medium, High and Very High categories, and
-                Random Forest regression using image colour features
-                to estimate a numerical acrylamide value.
-            </p>
+            <div class="mb-4">
+                <h5 class="card-heading">Acrylamide Data Summary</h5>
+                <p class="card-subheading">
+                    Statistics from the available regression labels
+                </p>
+            </div>
 
-            <p class="disclaimer">
-                Note: The numerical value is an experimental
-                image-based estimate derived from dataset-associated
-                labels. It is not a direct chemical measurement and
-                does not replace laboratory testing. Classification
-                confidence is not the probability that the estimated
-                acrylamide concentration is correct.
-            </p>
-        </section>
+            <div class="p-3 rounded-3 mb-3"
+                 style="background:#eff6ff;">
+                <div class="text-secondary small fw-semibold">
+                    Minimum recorded label
+                </div>
+                <div class="fs-4 fw-bold text-blue mt-1">
+                    {% if dataset.acrylamide_min is not none %}
+                        {{ "%.2f"|format(dataset.acrylamide_min) }}
+                    {% else %}
+                        Not available
+                    {% endif %}
+                </div>
+                <div class="text-secondary" style="font-size:11px;">
+                    µg/kg
+                </div>
+            </div>
 
-    </main>
+            <div class="p-3 rounded-3 mb-3"
+                 style="background:#fffbeb;">
+                <div class="text-secondary small fw-semibold">
+                    Median recorded label
+                </div>
+                <div class="fs-4 fw-bold text-gold mt-1">
+                    {% if dataset.acrylamide_median is not none %}
+                        {{ "%.2f"|format(dataset.acrylamide_median) }}
+                    {% else %}
+                        Not available
+                    {% endif %}
+                </div>
+                <div class="text-secondary" style="font-size:11px;">
+                    µg/kg
+                </div>
+            </div>
 
-    <footer>
-        <p>
-            AI-Based Potato Chip Grading System |
-            Deep Learning and Computer Vision
-        </p>
-    </footer>
+            <div class="p-3 rounded-3"
+                 style="background:#fff7ed;">
+                <div class="text-secondary small fw-semibold">
+                    Maximum recorded label
+                </div>
+                <div class="fs-4 fw-bold text-orange mt-1">
+                    {% if dataset.acrylamide_max is not none %}
+                        {{ "%.2f"|format(dataset.acrylamide_max) }}
+                    {% else %}
+                        Not available
+                    {% endif %}
+                </div>
+                <div class="text-secondary" style="font-size:11px;">
+                    µg/kg
+                </div>
+            </div>
 
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+            <div class="mt-3 text-secondary" style="font-size:10px;">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i>
+                Source:
+                {% for sheet, count in dataset.source_sheets.items() %}
+                    {{ sheet }} ({{ count }} samples){% if not loop.last %}, {% endif %}
+                {% endfor %}
+            </div>
 
-</body>
-</html>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- MODEL PERFORMANCE -->
+<div class="row g-4 mb-4">
+
+    <div class="col-12">
+        <div class="app-card">
+
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+                <div>
+                    <h5 class="card-heading">Model Performance</h5>
+                    <p class="card-subheading">
+                        Evaluation results loaded from your project evaluation files
+                    </p>
+                </div>
+
+                <a href="/performance" class="btn btn-outline-custom">
+                    Full Evaluation <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+
+            {% if performance.best_model and performance.best_model.model %}
+
+                <div class="model-highlight mb-4">
+
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                        <div>
+                            <div class="text-secondary small fw-semibold mb-1">
+                                BEST EVALUATED CLASSIFICATION MODEL
+                            </div>
+                            <div class="model-name">
+                                <i class="bi bi-award-fill text-gold me-2"></i>
+                                {{ performance.best_model.model }}
+                            </div>
+                        </div>
+
+                        <span class="soft-badge badge-green">
+                            <i class="bi bi-check-circle-fill"></i>
+                            Evaluation available
+                        </span>
+                    </div>
+
+                    <div class="row g-3">
+
+                        <div class="col-6 col-md-4">
+                            <div class="model-metric">
+                                <div class="model-metric-label">Test Accuracy</div>
+                                <div class="model-metric-value">
+                                    {% if performance.best_model.test_accuracy is not none %}
+                                        {{ "%.2f"|format(performance.best_model.test_accuracy * 100) }}%
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-6 col-md-4">
+                            <div class="model-metric">
+                                <div class="model-metric-label">Macro F1-score</div>
+                                <div class="model-metric-value">
+                                    {% if performance.best_model.test_macro_f1 is not none %}
+                                        {{ "%.2f"|format(performance.best_model.test_macro_f1 * 100) }}%
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <div class="model-metric">
+                                <div class="model-metric-label">Selection Method</div>
+                                <div class="mt-2 fw-bold" style="font-size:12px;">
+                                    Highest published Macro F1
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            {% else %}
+
+                <div class="disclaimer-panel">
+                    <i class="bi bi-info-circle"></i>
+                    <div>
+                        <strong>Evaluation metrics unavailable.</strong>
+                        No best-model evaluation result is currently available.
+                    </div>
+                </div>
+
+            {% endif %}
+
+
+            <!-- MODEL COMPARISON TABLE -->
+            {% if performance.comparison %}
+
+                <h6 class="card-heading mb-3">Model Comparison</h6>
+
+                <div class="table-responsive">
+                    <table class="table table-clean">
+                        <thead>
+                            <tr>
+                                <th>Model</th>
+                                <th>Accuracy</th>
+                                <th>Macro F1</th>
+                                <th>Weighted F1</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for model in performance.comparison %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold text-dark">
+                                            {{ model.model }}
+                                        </div>
+                                        {% if model.collapse %}
+                                            <span class="soft-badge badge-red mt-1">
+                                                Class collapse observed
+                                            </span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {{ "%.2f"|format(model.accuracy * 100) }}%
+                                    </td>
+
+                                    <td>
+                                        <span class="metric-pill">
+                                            {{ "%.2f"|format(model.f1_macro * 100) }}%
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        {{ "%.2f"|format(model.f1_weighted * 100) }}%
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            {% endif %}
+
+        </div>
+    </div>
+
+</div>
+
+
+<!-- QUICK ACTIONS -->
+<div class="row g-3 mb-4">
+
+    <div class="col-md-4">
+        <a href="/upload" class="app-card d-flex align-items-center gap-3">
+            <div class="stat-icon"
+                 style="--stat-color:#1e40af; --stat-soft:#eff6ff;">
+                <i class="bi bi-cloud-arrow-up"></i>
+            </div>
+            <div>
+                <h6 class="card-heading">Upload Image</h6>
+                <p class="card-subheading mb-0">Start a new chip analysis</p>
+            </div>
+            <i class="bi bi-arrow-up-right ms-auto text-secondary"></i>
+        </a>
+    </div>
+
+    <div class="col-md-4">
+        <a href="/dataset" class="app-card d-flex align-items-center gap-3">
+            <div class="stat-icon"
+                 style="--stat-color:#d97706; --stat-soft:#fffbeb;">
+                <i class="bi bi-database"></i>
+            </div>
+            <div>
+                <h6 class="card-heading">Explore Dataset</h6>
+                <p class="card-subheading mb-0">Review image and label data</p>
+            </div>
+            <i class="bi bi-arrow-up-right ms-auto text-secondary"></i>
+        </a>
+    </div>
+
+    <div class="col-md-4">
+        <a href="/history" class="app-card d-flex align-items-center gap-3">
+            <div class="stat-icon"
+                 style="--stat-color:#10b981; --stat-soft:#ecfdf5;">
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <div>
+                <h6 class="card-heading">Analysis History</h6>
+                <p class="card-subheading mb-0">View previous predictions</p>
+            </div>
+            <i class="bi bi-arrow-up-right ms-auto text-secondary"></i>
+        </a>
+    </div>
+
+</div>
+
+
+<!-- SCIENTIFIC DISCLAIMER -->
+<div class="disclaimer-panel">
+    <i class="bi bi-shield-exclamation"></i>
+    <div>
+        <strong>Research disclaimer:</strong>
+        Acrylamide values and grades generated by this application are research-based estimates.
+        Image appearance alone cannot chemically determine acrylamide concentration.
+        Laboratory testing is required for actual concentration measurements.
+        The project's grade bands are not regulatory safety limits.
+    </div>
+</div>
+
+{% endblock %}

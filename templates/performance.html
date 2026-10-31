@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Model Performance | PotatoGuard AI{% endblock %}
+{% block content %}
+<h1>Model performance</h1>
+<p>{{ performance.disclaimer }}</p>
+<div class="panel mb-4">
+    <h2>Registered best model</h2>
+    <p><strong>{{ performance.best_model.model or "Unavailable" }}</strong></p>
+    <p class="small text-muted">{{ performance.best_model.selection_basis or performance.best_model.error }}</p>
+</div>
+<div class="panel">
+    <h2>Comparison</h2>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Model</th>
+                    <th>Test accuracy</th>
+                    <th>Macro F1</th>
+                    <th>Weighted F1</th>
+                    <th>Collapse</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in performance.comparison %}
+                    <tr>
+                        <td>{{ row.model }}</td>
+                        <td>{% if row.accuracy is not none %}{{ (row.accuracy * 100) | round(2) }}%{% else %}—{% endif %}</td>
+                        <td>{% if row.f1_macro is not none %}{{ (row.f1_macro * 100) | round(2) }}%{% else %}—{% endif %}</td>
+                        <td>{% if row.f1_weighted is not none %}{{ (row.f1_weighted * 100) | round(2) }}%{% else %}—{% endif %}</td>
+                        <td>{{ "Yes" if row.collapse else "No" }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="row g-3 mt-2">
+    <div class="col-md-6">
+        <img class="img-fluid rounded" alt="Class distribution" src="{{ url_for('result_figure', filename='class_distribution.png') }}" onerror="this.style.display='none'">
+    </div>
+    <div class="col-md-6">
+        <img class="img-fluid rounded" alt="Model comparison" src="{{ url_for('result_figure', filename='model_comparison.png') }}" onerror="this.style.display='none'">
+    </div>
+</div>
+{% endblock %}

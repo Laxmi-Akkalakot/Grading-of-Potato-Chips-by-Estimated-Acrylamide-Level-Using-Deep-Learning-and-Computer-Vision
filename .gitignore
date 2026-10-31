@@ -218,3 +218,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local app state
+database/*.db
+uploads/
+__pycache__/
+*.keras.bak*
+models/*_backup_*
+.DS_Store
+
+# Keep dataset images tracked only if the owner chooses; do not ignore labels.
+data/processed/previews/

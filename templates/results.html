@@ -1,0 +1,107 @@
+
+{% extends "base.html" %}
+
+{% block title %}Prediction Results | PotatoGuard AI{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <div class="text-center mb-4">
+        <h1>Potato Chips Acrylamide Prediction</h1>
+        <p class="text-muted">
+            AI-based estimation using computer vision and machine learning
+        </p>
+    </div>
+
+    {% if result %}
+
+    <div class="row justify-content-center g-4">
+
+        <!-- Uploaded / processed image -->
+        <div class="col-lg-5">
+            <div class="panel p-3">
+                <h3>Processed Potato Chips Image</h3>
+
+                {% if result.preview_jpeg_base64 %}
+                    <img
+                        class="img-fluid rounded"
+                        alt="Processed potato chips"
+                        src="data:image/jpeg;base64,{{ result.preview_jpeg_base64 }}"
+                    >
+                {% else %}
+                    <p>Image preview is unavailable.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Prediction result -->
+        <div class="col-lg-7">
+            <div class="panel p-4">
+
+                <p class="eyebrow">AI Prediction Result</p>
+
+                <h2 class="mb-3">
+                    Estimated Acrylamide Concentration
+                </h2>
+
+                {% if result.estimated_acrylamide_ug_per_kg is not none %}
+
+                    <h1 class="display-4 fw-bold">
+                        {{ result.estimated_acrylamide_ug_per_kg }}
+                    </h1>
+
+                    <p class="text-muted">µg/kg</p>
+
+                    <hr>
+
+                    <h3>Potato Chips Grade</h3>
+
+                    <h2 class="fw-bold">
+                        {{ result.grade }}
+                    </h2>
+
+                {% else %}
+
+                    <p class="text-danger">
+                        Numerical acrylamide estimation is unavailable.
+                    </p>
+
+                {% endif %}
+
+                <hr>
+
+                <p class="small text-muted">
+                    Model: {{ result.model_version }}
+                </p>
+
+                <p class="disclaimer">
+                    {{ result.disclaimer }}
+                </p>
+
+            </div>
+        </div>
+
+    </div>
+
+    {% else %}
+
+        <div class="panel p-4 text-center">
+            <h3>No prediction available</h3>
+            <p>Please upload a potato chips image.</p>
+            <a href="{{ url_for('upload') }}" class="btn btn-primary">
+                Upload Image
+            </a>
+        </div>
+
+    {% endif %}
+
+    <div class="text-center mt-4">
+        <a href="{{ url_for('upload') }}" class="btn btn-primary">
+            Predict Another Image
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}

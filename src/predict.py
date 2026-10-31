@@ -1,83 +1,237 @@
 
-from pathlib import Path
+"""Load the acrylamide regression model and predict a single potato-chip image."""
+
+from __future__ import annotations
+
+import base64
 import json
-import sys
+from pathlib import Path
 
+import cv2
+import joblib
 import numpy as np
-import tensorflow as tf
 
-# Project paths
-ROOT = Path(__file__).resolve().parent.parent
-MODEL_PATH = ROOT / "models" / "acrylamide_grade_checkpoint.keras"
-CLASSES_PATH = ROOT / "models" / "grade_classes.json"
+from config import (
+    DISCLAIMER,
+    LEGACY_REGRESSION_PATH,
+    MODELS_DIR,
+    grade_from_acrylamide,
+)
+from src.feature_extraction import (
+    extract_features_from_bgr,
+    regression_vector_from_features,
+)
+from src.safeguards import ModelReliabilityError
 
-IMAGE_SIZE = (160, 160)
 
-def main():
-    # Ask for an image path if it wasn't supplied in the command.
-    if len(sys.argv) > 1:
-        image_path = Path(sys.argv[1])
-        if not image_path.is_absolute():
-            image_path = ROOT / image_path
-    else:
-        entered_path = input(
-            "Enter potato-chip image path: "
-        ).strip().strip('"')
-        image_path = Path(entered_path)
+def extract_legacy_rf_features(bgr: np.ndarray) -> np.ndarray:
+    """
+    Extract the 14 full-image features used by the legacy Random Forest.
+    Feature order must match save_random_forest.py.
+    """
+    image = cv2.resize(bgr, (160, 160))
 
-        if not image_path.is_absolute():
-            image_path = ROOT / image_path
+    blue, green, red = cv2.split(image)
 
-    if not MODEL_PATH.exists():
-        print("Trained model not found:", MODEL_PATH)
-        return
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    hue, saturation, value = cv2.split(hsv)
 
-    if not CLASSES_PATH.exists():
-        print("Class names file not found:", CLASSES_PATH)
-        return
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    if not image_path.is_file():
-        print("Image file not found:", image_path)
-        return
+    features = [
+        np.mean(blue), np.std(blue),
+        np.mean(green), np.std(green),
+        np.mean(red), np.std(red),
+        np.mean(hue), np.std(hue),
+        np.mean(saturation), np.std(saturation),
+        np.mean(value), np.std(value),
+        np.mean(gray), np.std(gray),
+    ]
 
-    # Load model and class names.
-    model = tf.keras.models.load_model(MODEL_PATH)
+    return np.array([features], dtype=np.float64)
 
-    with open(CLASSES_PATH, "r", encoding="utf-8") as file:
-        classes = json.load(file)
 
-    # Use the same image preprocessing as training.
-    image_bytes = tf.io.read_file(str(image_path))
-    image = tf.io.decode_image(
-        image_bytes,
-        channels=3,
-        expand_animations=False
-    )
-    image = tf.image.resize(image, IMAGE_SIZE)
-    image = tf.cast(image, tf.float32) / 255.0
-    image = tf.expand_dims(image, axis=0)
+class Predictor:
+    """Predict estimated acrylamide concentration from a potato-chip image."""
 
-    # Predict grade.
-    probabilities = model.predict(image, verbose=0)[0]
-    best_index = int(np.argmax(probabilities))
-    predicted_grade = classes[best_index]
-    confidence = float(probabilities[best_index]) * 100
+    def __init__(self) -> None:
+        self.regression_bundle = None
+        self.model_version = "Unknown"
+        self._load()
 
-    print("\n========== POTATO CHIP GRADING ==========")
-    print("Image:", image_path.name)
-    print("Predicted grade:", predicted_grade)
-    print(f"Model confidence: {confidence:.2f}%")
-    print("\nScores for each grade:")
+    def _load(self) -> None:
+        """Load the available regression model without replacing existing files."""
 
-    for name, score in sorted(
-        zip(classes, probabilities),
-        key=lambda item: item[1],
-        reverse=True
-    ):
-        print(f"{name}: {score * 100:.2f}%")
+        new_model_path = (
+            MODELS_DIR / "regression" / "random_forest_features.joblib"
+        )
+        legacy_model_path = LEGACY_REGRESSION_PATH
 
-    print("\nNote: This is an experimental image-based estimate.")
-    print("It does not measure acrylamide or establish food safety.")
+        if new_model_path.exists():
+            model_path = new_model_path
+            is_legacy = False
+        elif legacy_model_path.exists():
+            model_path = legacy_model_path
+            is_legacy = True
+        else:
+            raise ModelReliabilityError(
+                "No regression model found. Expected either "
+                f"{new_model_path} or {legacy_model_path}"
+            )
 
-if __name__ == "__main__":
-    main()
+        try:
+            loaded = joblib.load(model_path)
+
+            if isinstance(loaded, dict) and "model" in loaded:
+                self.regression_bundle = loaded
+                self.regression_bundle.setdefault("legacy", is_legacy)
+            else:
+                self.regression_bundle = {
+                    "model": loaded,
+                    "legacy": is_legacy,
+                }
+
+            self.model_version = model_path.name
+
+        except Exception as exc:
+            raise ModelReliabilityError(
+                f"Could not load regression model: {exc}"
+            ) from exc
+
+    def predict_bgr(
+        self,
+        bgr: np.ndarray,
+        filename: str = "upload.jpg",
+    ) -> dict:
+        """Predict the concentration and derive its grade."""
+
+        if bgr is None or not isinstance(bgr, np.ndarray):
+            raise ModelReliabilityError("Invalid image supplied.")
+
+        if bgr.ndim != 3 or bgr.shape[2] != 3:
+            raise ModelReliabilityError(
+                "The uploaded image must be a valid colour image."
+            )
+
+        height, width = bgr.shape[:2]
+
+        if min(height, width) < 16:
+            raise ModelReliabilityError(
+                f"Invalid image dimensions: {width}x{height}"
+            )
+
+        # Extract image features and prepare the segmentation preview.
+        features, mask, preview = extract_features_from_bgr(bgr)
+
+        bundle = self.regression_bundle
+        model = bundle["model"]
+
+        # Use the exact feature representation expected by the model.
+        columns = bundle.get("feature_columns")
+
+        if columns:
+            missing = [column for column in columns if column not in features]
+
+            if missing:
+                raise ModelReliabilityError(
+                    f"Required regression features are missing: {missing}"
+                )
+
+            vector = np.array(
+                [[features[column] for column in columns]],
+                dtype=np.float64,
+            )
+
+        elif bundle.get("legacy", False):
+            # Legacy RF was trained on full, unsegmented images.
+            vector = extract_legacy_rf_features(bgr)
+
+        else:
+            vector = regression_vector_from_features(features)
+
+        try:
+            raw_prediction = model.predict(vector)[0]
+            estimated_value = float(raw_prediction)
+
+            if not np.isfinite(estimated_value):
+                raise ValueError("Model returned a non-finite value.")
+
+            estimated_value = max(0.0, estimated_value)
+
+        except Exception as exc:
+            raise ModelReliabilityError(
+                f"Acrylamide prediction failed: {exc}"
+            ) from exc
+
+        # The grade is derived from the numerical estimate.
+        grade = grade_from_acrylamide(estimated_value)
+
+        # Encode the segmentation preview.
+        ok, preview_buffer = cv2.imencode(".jpg", preview)
+
+        preview_b64 = None
+
+        if ok:
+            preview_b64 = base64.b64encode(
+                preview_buffer.tobytes()
+            ).decode("ascii")
+
+        return {
+            "filename": filename,
+            "grade": grade,
+            "confidence_percent": None,
+            "class_confidences": {},
+            "estimated_acrylamide_ug_per_kg": round(
+                estimated_value, 2
+            ),
+            "features": {
+                "mean_red": round(float(features["mean_red"]), 2),
+                "mean_green": round(float(features["mean_green"]), 2),
+                "mean_blue": round(float(features["mean_blue"]), 2),
+                "mean_hue": round(float(features["mean_hue"]), 2),
+                "mean_saturation": round(
+                    float(features["mean_saturation"]), 2
+                ),
+                "mean_value": round(float(features["mean_value"]), 2),
+                "brightness": round(float(features["brightness"]), 2),
+                "saturation": round(float(features["saturation"]), 2),
+                "foreground_fraction": round(
+                    float(features["foreground_fraction"]), 3
+                ),
+            },
+            "preview_jpeg_base64": preview_b64,
+            "model_version": self.model_version,
+            "confidence_is_calibrated": False,
+            "possible_collapse_flag": False,
+            "disclaimer": DISCLAIMER,
+        }
+
+
+def predict_image_bytes(data: bytes, filename: str) -> dict:
+    """Decode an uploaded image and return its prediction."""
+
+    array = np.frombuffer(data, dtype=np.uint8)
+    bgr = cv2.imdecode(array, cv2.IMREAD_COLOR)
+
+    if bgr is None:
+        raise ModelReliabilityError(
+            "Could not decode the uploaded image."
+        )
+
+    predictor = get_predictor()
+
+    return predictor.predict_bgr(bgr, filename)
+
+
+_PREDICTOR: Predictor | None = None
+
+
+def get_predictor() -> Predictor:
+    """Return the cached prediction model."""
+
+    global _PREDICTOR
+
+    if _PREDICTOR is None:
+        _PREDICTOR = Predictor()
+
+    return _PREDICTOR

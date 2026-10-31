@@ -1,0 +1,361 @@
+{
+  "labels_csv": "C:\\Users\\siddu\\OneDrive\\Documents\\GitHub\\Grading-of-Potato-Chips-by-Estimated-Acrylamide-Level-Using-Deep-Learning-and-Computer-Vision\\data\\labels.csv",
+  "image_dir": "C:\\Users\\siddu\\OneDrive\\Documents\\GitHub\\Grading-of-Potato-Chips-by-Estimated-Acrylamide-Level-Using-Deep-Learning-and-Computer-Vision\\data\\images",
+  "n_label_rows": 310,
+  "n_image_files": 310,
+  "unlabelled_images": [],
+  "class_distribution": {
+    "Low": 126,
+    "Medium": 99,
+    "High": 56,
+    "Very High": 29
+  },
+  "source_sheets": {
+    "Chapter 3": 310
+  },
+  "acrylamide_stats": {
+    "min": 83.009318516096,
+    "max": 8438.46112250935,
+    "mean": 943.6704477854428,
+    "median": 597.0370102739655
+  },
+  "issues": {
+    "missing_columns": [],
+    "missing_images": [],
+    "incorrect_image_paths": [],
+    "corrupted_images": [],
+    "invalid_acrylamide_values": [],
+    "incorrect_grade_assignments": [],
+    "duplicate_image_names": [],
+    "duplicate_sample_ids": [],
+    "duplicate_file_hashes": [
+      [
+        "Ch3_001_Low_267.jpg",
+        "Ch3_019_Low_359.jpg",
+        "Ch3_076_Low_499.jpg",
+        "Ch3_103_Low_500.jpg",
+        "Ch3_240_Low_238.jpg",
+        "Ch3_264_Low_250.jpg"
+      ],
+      [
+        "Ch3_002_Low_431.jpg",
+        "Ch3_020_Low_139.jpg",
+        "Ch3_060_Low_397.jpg",
+        "Ch3_077_Low_275.jpg",
+        "Ch3_119_Low_342.jpg",
+        "Ch3_241_Low_234.jpg",
+        "Ch3_265_Low_211.jpg"
+      ],
+      [
+        "Ch3_003_Low_401.jpg",
+        "Ch3_012_Low_266.jpg",
+        "Ch3_021_Low_379.jpg",
+        "Ch3_114_Medium_522.jpg",
+        "Ch3_168_Low_435.jpg",
+        "Ch3_245_Low_104.jpg",
+        "Ch3_269_Low_173.jpg"
+      ],
+      [
+        "Ch3_004_Low_241.jpg",
+        "Ch3_017_Low_500.jpg"
+      ],
+      [
+        "Ch3_008_Medium_515.jpg",
+        "Ch3_016_Medium_503.jpg",
+        "Ch3_108_Medium_576.jpg",
+        "Ch3_111_Medium_761.jpg",
+        "Ch3_170_Low_466.jpg",
+        "Ch3_181_Low_233.jpg",
+        "Ch3_182_Low_382.jpg"
+      ],
+      [
+        "Ch3_010_Low_284.jpg",
+        "Ch3_015_Low_224.jpg"
+      ],
+      [
+        "Ch3_011_Low_155.jpg",
+        "Ch3_038_Low_101.jpg",
+        "Ch3_054_Low_435.jpg",
+        "Ch3_104_Low_271.jpg",
+        "Ch3_244_Low_83.jpg",
+        "Ch3_268_Low_255.jpg"
+      ],
+      [
+        "Ch3_013_Low_398.jpg",
+        "Ch3_022_Low_418.jpg",
+        "Ch3_053_Low_337.jpg",
+        "Ch3_155_Low_498.jpg",
+        "Ch3_246_Low_114.jpg",
+        "Ch3_270_Low_193.jpg"
+      ],
+      [
+        "Ch3_014_Low_404.jpg",
+        "Ch3_024_Low_317.jpg"
+      ],
+      [
+        "Ch3_018_High_1048.jpg",
+        "Ch3_064_Medium_940.jpg"
+      ],
+      [
+        "Ch3_030_Low_261.jpg",
+        "Ch3_048_Low_424.jpg"
+      ],
+      [
+        "Ch3_033_Low_204.jpg",
+        "Ch3_034_Low_462.jpg"
+      ],
+      [
+        "Ch3_035_Medium_632.jpg",
+        "Ch3_066_Medium_793.jpg",
+        "Ch3_091_Medium_789.jpg",
+        "Ch3_116_High_1130.jpg",
+        "Ch3_296_High_1310.jpg"
+      ],
+      [
+        "Ch3_036_Medium_536.jpg",
+        "Ch3_059_Medium_909.jpg",
+        "Ch3_287_Medium_783.jpg"
+      ],
+      [
+        "Ch3_039_Medium_618.jpg",
+        "Ch3_122_Low_173.jpg",
+        "Ch3_186_Low_419.jpg",
+        "Ch3_247_Low_97.jpg"
+      ],
+      [
+        "Ch3_044_Medium_515.jpg",
+        "Ch3_153_Low_349.jpg"
+      ],
+      [
+        "Ch3_047_Medium_555.jpg",
+        "Ch3_058_Medium_519.jpg",
+        "Ch3_112_Medium_874.jpg"
+      ],
+      [
+        "Ch3_049_Medium_822.jpg",
+        "Ch3_056_Medium_572.jpg",
+        "Ch3_101_Medium_945.jpg",
+        "Ch3_173_Low_353.jpg"
+      ],
+      [
+        "Ch3_050_Medium_631.jpg",
+        "Ch3_069_Medium_675.jpg",
+        "Ch3_093_Low_293.jpg",
+        "Ch3_106_Medium_612.jpg",
+        "Ch3_151_Medium_801.jpg",
+        "Ch3_300_High_1052.jpg"
+      ],
+      [
+        "Ch3_051_High_1473.jpg",
+        "Ch3_078_Medium_525.jpg",
+        "Ch3_095_Medium_745.jpg",
+        "Ch3_102_Medium_514.jpg",
+        "Ch3_259_Medium_534.jpg"
+      ],
+      [
+        "Ch3_052_Medium_903.jpg",
+        "Ch3_057_High_1486.jpg",
+        "Ch3_285_High_1086.jpg"
+      ],
+      [
+        "Ch3_055_Medium_566.jpg",
+        "Ch3_301_Very-high_4003.jpg"
+      ],
+      [
+        "Ch3_061_Medium_716.jpg",
+        "Ch3_295_Medium_676.jpg"
+      ],
+      [
+        "Ch3_063_High_1317.jpg",
+        "Ch3_081_High_1188.jpg",
+        "Ch3_294_High_1695.jpg",
+        "Ch3_299_Very-high_3864.jpg"
+      ],
+      [
+        "Ch3_065_Medium_527.jpg",
+        "Ch3_092_Medium_768.jpg"
+      ],
+      [
+        "Ch3_067_Medium_627.jpg",
+        "Ch3_098_High_1328.jpg",
+        "Ch3_286_Medium_689.jpg",
+        "Ch3_297_Medium_529.jpg",
+        "Ch3_308_Very-high_2188.jpg"
+      ],
+      [
+        "Ch3_068_Low_423.jpg",
+        "Ch3_113_Medium_920.jpg",
+        "Ch3_243_Low_180.jpg",
+        "Ch3_267_Low_105.jpg"
+      ],
+      [
+        "Ch3_070_Low_311.jpg",
+        "Ch3_094_Low_252.jpg",
+        "Ch3_171_Low_418.jpg"
+      ],
+      [
+        "Ch3_074_Medium_741.jpg",
+        "Ch3_086_Medium_811.jpg",
+        "Ch3_311_High_1848.jpg"
+      ],
+      [
+        "Ch3_075_Very-high_3153.jpg",
+        "Ch3_177_Very-high_2454.jpg",
+        "Ch3_288_Very-high_3525.jpg"
+      ],
+      [
+        "Ch3_080_Medium_783.jpg",
+        "Ch3_082_Medium_550.jpg",
+        "Ch3_179_High_1013.jpg",
+        "Ch3_303_Very-high_7813.jpg"
+      ],
+      [
+        "Ch3_083_Low_413.jpg",
+        "Ch3_090_Low_473.jpg"
+      ],
+      [
+        "Ch3_084_Low_112.jpg",
+        "Ch3_089_Low_316.jpg"
+      ],
+      [
+        "Ch3_087_High_1865.jpg",
+        "Ch3_175_Very-high_2036.jpg",
+        "Ch3_281_Very-high_2049.jpg",
+        "Ch3_298_High_1011.jpg"
+      ],
+      [
+        "Ch3_088_Medium_519.jpg",
+        "Ch3_310_Very-high_7838.jpg"
+      ],
+      [
+        "Ch3_096_Medium_551.jpg",
+        "Ch3_284_High_1906.jpg"
+      ],
+      [
+        "Ch3_097_Very-high_3732.jpg",
+        "Ch3_144_Very-high_3651.jpg",
+        "Ch3_289_Very-high_2407.jpg"
+      ],
+      [
+        "Ch3_105_Low_310.jpg",
+        "Ch3_184_Low_467.jpg",
+        "Ch3_242_Low_226.jpg",
+        "Ch3_266_Low_126.jpg"
+      ],
+      [
+        "Ch3_109_High_1586.jpg",
+        "Ch3_293_High_1084.jpg",
+        "Ch3_309_High_1596.jpg"
+      ],
+      [
+        "Ch3_117_High_1120.jpg",
+        "Ch3_163_High_1594.jpg"
+      ],
+      [
+        "Ch3_121_Very-high_2654.jpg",
+        "Ch3_159_Very-high_2474.jpg"
+      ],
+      [
+        "Ch3_135_Medium_838.jpg",
+        "Ch3_154_Medium_624.jpg",
+        "Ch3_160_Medium_530.jpg"
+      ],
+      [
+        "Ch3_137_Medium_715.jpg",
+        "Ch3_172_Medium_555.jpg"
+      ],
+      [
+        "Ch3_141_Medium_712.jpg",
+        "Ch3_162_Medium_846.jpg"
+      ],
+      [
+        "Ch3_148_High_1057.jpg",
+        "Ch3_191_High_1104.jpg"
+      ],
+      [
+        "Ch3_150_High_1004.jpg",
+        "Ch3_152_High_1010.jpg",
+        "Ch3_190_High_1531.jpg"
+      ],
+      [
+        "Ch3_156_High_1062.jpg",
+        "Ch3_189_High_1191.jpg"
+      ],
+      [
+        "Ch3_158_Medium_757.jpg",
+        "Ch3_180_Medium_594.jpg"
+      ],
+      [
+        "Ch3_164_Medium_707.jpg",
+        "Ch3_167_Medium_544.jpg"
+      ],
+      [
+        "Ch3_174_High_1324.jpg",
+        "Ch3_306_Very-high_2409.jpg"
+      ],
+      [
+        "Ch3_192_Low_262.jpg",
+        "Ch3_208_Low_216.jpg"
+      ],
+      [
+        "Ch3_193_Low_234.jpg",
+        "Ch3_209_Low_319.jpg"
+      ],
+      [
+        "Ch3_194_Low_361.jpg",
+        "Ch3_210_Low_304.jpg"
+      ],
+      [
+        "Ch3_196_Low_272.jpg",
+        "Ch3_211_Low_389.jpg"
+      ],
+      [
+        "Ch3_200_Low_490.jpg",
+        "Ch3_212_Low_340.jpg",
+        "Ch3_239_Medium_974.jpg"
+      ],
+      [
+        "Ch3_201_Low_383.jpg",
+        "Ch3_213_Low_220.jpg",
+        "Ch3_224_Medium_755.jpg"
+      ],
+      [
+        "Ch3_202_Low_290.jpg",
+        "Ch3_205_Low_280.jpg"
+      ],
+      [
+        "Ch3_203_Low_424.jpg",
+        "Ch3_206_Low_256.jpg"
+      ],
+      [
+        "Ch3_204_Low_395.jpg",
+        "Ch3_207_Low_301.jpg"
+      ],
+      [
+        "Ch3_218_High_1008.jpg",
+        "Ch3_226_High_1083.jpg",
+        "Ch3_236_High_1534.jpg"
+      ],
+      [
+        "Ch3_221_Medium_697.jpg",
+        "Ch3_231_Medium_830.jpg"
+      ],
+      [
+        "Ch3_250_Low_123.jpg",
+        "Ch3_271_Low_109.jpg"
+      ]
+    ]
+  },
+  "ok": false,
+  "issue_counts": {
+    "missing_images": 0,
+    "incorrect_image_paths": 0,
+    "corrupted_images": 0,
+    "invalid_acrylamide_values": 0,
+    "incorrect_grade_assignments": 0,
+    "duplicate_image_names": 0,
+    "duplicate_sample_ids": 0,
+    "duplicate_file_hashes": 62,
+    "missing_columns": 0
+  }
+}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}History | PotatoGuard AI{% endblock %}
+{% block content %}
+<h1>Prediction history</h1>
+<p>Stored in local SQLite. Uploaded images are not kept on disk.</p>
+{% if records %}
+    <div class="table-responsive panel">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>File</th>
+                    <th>Grade</th>
+                    <th>Scores</th>
+                    <th>Estimate (µg/kg)</th>
+                    <th>Model</th>
+                    <th>Time</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in records %}
+                    <tr>
+                        <td>{{ row.id }}</td>
+                        <td>{{ row.image_filename }}</td>
+                        <td>{{ row.predicted_grade }}</td>
+                        <td class="small">{{ row.confidence_scores }}</td>
+                        <td>{{ row.estimated_ug_per_kg if row.estimated_ug_per_kg is not none else "—" }}</td>
+                        <td>{{ row.model_version }}</td>
+                        <td>{{ row.created_at }}</td>
+                        <td>
+                            <form method="post" action="{{ url_for('history_delete', item_id=row.id) }}">
+                                <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <p>No history yet.</p>
+{% endif %}
+{% endblock %}

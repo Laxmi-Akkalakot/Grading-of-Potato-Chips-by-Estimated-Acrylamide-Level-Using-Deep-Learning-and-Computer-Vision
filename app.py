@@ -1,287 +1,252 @@
+"""PotatoGuard AI Flask application."""
+
+from __future__ import annotations
 
 import os
-import numpy as np
-import tensorflow as tf
-import cv2
-import joblib
-
-from flask import Flask, render_template, request, jsonify
-from PIL import Image, UnidentifiedImageError
-from werkzeug.utils import secure_filename
 from io import BytesIO
 
-# --------------------------------------------------
-# 1. Flask application configuration
-# --------------------------------------------------
+from flask import (
+    Flask,
+    abort,
+    flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+    session,
+    url_for,
+)
+from PIL import Image, UnidentifiedImageError
+
+from config import (
+    ALLOWED_EXTENSIONS,
+    APP_NAME,
+    DISCLAIMER,
+    FIGURES_DIR,
+    MAX_UPLOAD_MB,
+    RESULTS_DIR,
+    ROOT_DIR,
+)
+from src.dashboard_data import dataset_overview, performance_bundle
+from src.db import delete_prediction, init_db, insert_prediction, list_predictions
+from src.safeguards import ModelReliabilityError
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("POTATOGUARD_SECRET", "potatoguard-dev-key")
+app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_MB * 1024 * 1024
 
-app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-CLASSIFICATION_MODEL_PATH = os.path.join(
-    BASE_DIR, "models", "acrylamide_grade_v3.keras"
-)
-
-REGRESSION_MODEL_PATH = os.path.join(
-    BASE_DIR,
-    "models",
-    "regression",
-    "random_forest_acrylamide.pkl"
-)
-
-IMAGE_SIZE = (160, 160)
-
-CLASS_NAMES = ["High", "Low", "Medium", "Very High"]
-
-ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
+_predictor = None
 
 
-# --------------------------------------------------
-# 2. Load classification model
-# --------------------------------------------------
-
-if not os.path.exists(CLASSIFICATION_MODEL_PATH):
-    raise FileNotFoundError(CLASSIFICATION_MODEL_PATH)
-
-print("Loading V3 classification model...")
-
-classification_model = tf.keras.models.load_model(
-    CLASSIFICATION_MODEL_PATH,
-    compile=False
-)
-
-print("Classification model loaded successfully!")
+def allowed_file(filename: str) -> bool:
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-# --------------------------------------------------
-# 3. Load regression model
-# --------------------------------------------------
+def predictor_or_error():
+    """Return (predictor, None) or (None, error). Only successes are cached."""
+    global _predictor
+    if _predictor is not None:
+        return _predictor, None
+    try:
+        from src.predict import get_predictor
 
-if not os.path.exists(REGRESSION_MODEL_PATH):
-    raise FileNotFoundError(REGRESSION_MODEL_PATH)
-
-print("Loading Random Forest regression model...")
-
-regression_model = joblib.load(REGRESSION_MODEL_PATH)
-
-print("Regression model loaded successfully!")
-
-
-# --------------------------------------------------
-# 4. Check uploaded image extension
-# --------------------------------------------------
-
-def allowed_file(filename):
-    return (
-        "." in filename
-        and filename.rsplit(".", 1)[1].lower()
-        in ALLOWED_EXTENSIONS
-    )
+        _predictor = get_predictor()
+        return _predictor, None
+    except Exception as exc:
+        print("Model load error:", exc)
+        return None, str(exc)
 
 
-# --------------------------------------------------
-# 5. Preprocess image for MobileNetV2
-# --------------------------------------------------
-
-def preprocess_classification_image(image_bytes):
-
-    img = Image.open(BytesIO(image_bytes))
-    img = img.convert("RGB")
-    img = img.resize(IMAGE_SIZE)
-
-    image_array = np.array(img, dtype=np.float32)
-
-    image_array = (
-        tf.keras.applications.mobilenet_v2.preprocess_input(
-            image_array
-        )
-    )
-
-    image_array = np.expand_dims(image_array, axis=0)
-
-    return image_array
+def safe_call(func, default, *args, **kwargs):
+    """Run a data helper; on failure print the error and return a default."""
+    try:
+        return func(*args, **kwargs)
+    except Exception as exc:
+        print(f"{func.__name__} failed:", exc)
+        return default
 
 
-# --------------------------------------------------
-# 6. Extract image features for Random Forest
-# --------------------------------------------------
-
-def extract_regression_features(image_bytes):
-
-    img = Image.open(BytesIO(image_bytes))
-    img = img.convert("RGB")
-
-    # Convert PIL RGB image to OpenCV BGR
-    img_array = np.array(img)
-
-    img = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
-
-    img = cv2.resize(img, (160, 160))
-
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    features = []
-
-    # BGR channel statistics
-    for channel in cv2.split(img):
-        features.extend([
-            np.mean(channel),
-            np.std(channel)
-        ])
-
-    # HSV channel statistics
-    for channel in cv2.split(hsv):
-        features.extend([
-            np.mean(channel),
-            np.std(channel)
-        ])
-
-    # Brightness statistics
-    features.extend([
-        np.mean(gray),
-        np.std(gray)
-    ])
-
-    return np.array(features).reshape(1, -1)
+@app.context_processor
+def inject_globals():
+    return {
+        "app_name": APP_NAME,
+        "disclaimer": DISCLAIMER,
+    }
 
 
-# --------------------------------------------------
-# 7. Predict acrylamide grade
-# --------------------------------------------------
+@app.errorhandler(413)
+def too_large(_error):
+    return jsonify({"error": f"Image too large. Maximum size is {MAX_UPLOAD_MB} MB."}), 413
 
-def predict_grade(image_bytes):
-
-    image_array = preprocess_classification_image(
-        image_bytes
-    )
-
-    predictions = classification_model.predict(
-        image_array,
-        verbose=0
-    )
-
-    probabilities = predictions[0]
-
-    predicted_index = int(np.argmax(probabilities))
-
-    predicted_grade = CLASS_NAMES[predicted_index]
-
-    confidence = float(
-        probabilities[predicted_index] * 100
-    )
-
-    return predicted_grade, confidence
-
-
-# --------------------------------------------------
-# 8. Predict numerical acrylamide value
-# --------------------------------------------------
-
-def predict_acrylamide_value(image_bytes):
-
-    features = extract_regression_features(image_bytes)
-
-    prediction = regression_model.predict(features)[0]
-
-    prediction = max(0.0, float(prediction))
-
-    return prediction
-
-
-# --------------------------------------------------
-# 9. Home page
-# --------------------------------------------------
 
 @app.route("/")
-def home():
+def index():
+    overview = safe_call(dataset_overview, {})
+    performance = safe_call(performance_bundle, {})
+    recent = safe_call(list_predictions, [], limit=5)
+    return render_template(
+        "index.html",
+        dataset=overview,
+        overview=overview,
+        performance=performance,
+        recent=recent,
+        predictor_error=predictor_or_error()[1],
+    )
 
-    return render_template("index.html")
+
+@app.route("/upload")
+def upload():
+    return render_template("upload.html", predictor_error=predictor_or_error()[1])
 
 
-# --------------------------------------------------
-# 10. Prediction API
-# --------------------------------------------------
+@app.route("/results")
+def results_page():
+    payload = session.get("last_prediction")
+    if not payload:
+        flash("Upload an image to see prediction results.")
+        return redirect(url_for("upload"))
+    return render_template("results.html", result=payload)
 
+
+@app.route("/analysis")
+def analysis():
+    payload = session.get("last_prediction")
+    return render_template("analysis.html", result=payload)
+
+
+@app.route("/dataset")
+def dataset_page():
+    overview = safe_call(dataset_overview, {})
+    return render_template("dataset.html", dataset=overview, overview=overview)
+
+
+@app.route("/performance")
+def performance_page():
+    performance = safe_call(performance_bundle, {})
+    return render_template("performance.html", performance=performance)
+
+
+@app.route("/history")
+def history_page():
+    return render_template("history.html", records=safe_call(list_predictions, []))
+
+
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+
+@app.route("/api/health")
+def api_health():
+    _predictor_obj, error = predictor_or_error()
+    return jsonify(
+        {
+            "ok": error is None,
+            "model_error": error,
+            "app": APP_NAME,
+        }
+    )
+
+
+@app.route("/api/dataset")
+def api_dataset():
+    return jsonify(safe_call(dataset_overview, {}))
+
+
+@app.route("/api/metrics")
+def api_metrics():
+    return jsonify(safe_call(performance_bundle, {}))
+
+
+@app.route("/api/history", methods=["GET"])
+def api_history():
+    return jsonify(safe_call(list_predictions, []))
+
+
+@app.route("/api/history/<int:item_id>", methods=["DELETE"])
+def api_history_delete(item_id: int):
+    if not delete_prediction(item_id):
+        return jsonify({"error": "Prediction not found."}), 404
+    return jsonify({"ok": True, "deleted": item_id})
+
+
+@app.route("/history/<int:item_id>/delete", methods=["POST"])
+def history_delete(item_id: int):
+    delete_prediction(item_id)
+    flash("Prediction deleted.")
+    return redirect(url_for("history_page"))
+
+
+@app.route("/api/predict", methods=["POST"])
 @app.route("/predict", methods=["POST"])
-def predict():
+def api_predict():
+    predictor, error = predictor_or_error()
+    if error or predictor is None:
+        return jsonify({"error": error or "Classifier is unavailable."}), 503
 
     if "image" not in request.files:
-        return jsonify({
-            "error": "Please select an image."
-        }), 400
-
+        return jsonify({"error": "Please select an image."}), 400
     file = request.files["image"]
-
     if file.filename == "":
-        return jsonify({
-            "error": "No image selected."
-        }), 400
-
+        return jsonify({"error": "No image selected."}), 400
     if not allowed_file(file.filename):
-        return jsonify({
-            "error": "Only JPG, JPEG and PNG images are allowed."
-        }), 400
+        return jsonify({"error": "Only JPG, JPEG and PNG images are allowed."}), 400
 
+    image_bytes = file.read()
     try:
-
-        image_bytes = file.read()
-
-        # Validate uploaded image
         img = Image.open(BytesIO(image_bytes))
         img.verify()
-
-        # Predict grade using MobileNetV2
-        predicted_grade, confidence = predict_grade(
-            image_bytes
-        )
-
-        # Predict numerical value using Random Forest
-        acrylamide_value = predict_acrylamide_value(
-            image_bytes
-        )
-
-        # Return both predictions
-        return jsonify({
-            "success": True,
-            "grade": predicted_grade,
-            "confidence": round(confidence, 2),
-            "acrylamide_value": round(acrylamide_value, 2),
-            "unit": "µg/kg",
-            "message": "Prediction completed successfully.",
-            "disclaimer": (
-                "Experimental image-based estimate. "
-                "Not a direct chemical measurement."
-            )
-        })
-
     except (UnidentifiedImageError, OSError, ValueError):
-        return jsonify({
-            "error": (
-                "Invalid or corrupted image. "
-                "Please upload a valid image."
-            )
-        }), 400
+        return jsonify({"error": "Invalid or corrupted image."}), 400
 
-    except Exception as e:
+    try:
+        from src.predict import predict_image_bytes
 
-        print("Prediction error:", str(e))
+        result = predict_image_bytes(image_bytes, file.filename)
+    except ModelReliabilityError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except Exception as exc:
+        print("Prediction error:", exc)
+        return jsonify({"error": "Prediction failed. Please try again."}), 500
 
-        return jsonify({
-            "error": "Prediction failed. Please try again."
-        }), 500
+    insert_prediction(
+        filename=result["filename"],
+        grade=result["grade"],
+        confidences=result["class_confidences"],
+        model_version=result["model_version"],
+        estimated_ug_per_kg=result.get("estimated_acrylamide_ug_per_kg"),
+    )
+    session["last_prediction"] = {
+        key: value
+        for key, value in result.items()
+        if key != "preview_jpeg_base64"
+    }
+    return jsonify({"success": True, **result})
 
 
-# --------------------------------------------------
-# 11. Run Flask application
-# --------------------------------------------------
+@app.route("/results/figures/<path:filename>")
+def result_figure(filename: str):
+    directory = FIGURES_DIR
+    target = directory / filename
+    if not target.exists():
+        abort(404)
+    return send_from_directory(directory, filename)
+
+
+@app.route("/evaluation/<path:filename>")
+def evaluation_file(filename: str):
+    directory = ROOT_DIR / "evaluation"
+    if not (directory / filename).exists():
+        abort(404)
+    return send_from_directory(directory, filename)
+
+
+def create_app() -> Flask:
+    init_db()
+    return app
+
 
 if __name__ == "__main__":
-
-    app.run(
-        host="127.0.0.1",
-        port=5000,
-        debug=False
-    )
+    init_db()
+    app.run(host="127.0.0.1", port=5000, debug=False)

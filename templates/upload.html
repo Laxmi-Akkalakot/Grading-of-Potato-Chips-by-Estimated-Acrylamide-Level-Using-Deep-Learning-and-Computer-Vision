@@ -1,0 +1,816 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Image | PotatoGuard AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Upload page */
+    .upload-layout {
+        max-width: 1050px;
+        margin: 0 auto;
+    }
+
+    .upload-card {
+        padding: 30px;
+        background: #fff;
+        border: 1px solid #e8edf4;
+        border-radius: 20px;
+        box-shadow: 0 8px 28px rgba(15, 23, 42, 0.05);
+    }
+
+    .upload-dropzone {
+        position: relative;
+        display: flex;
+        min-height: 290px;
+        align-items: center;
+        justify-content: center;
+        padding: 30px;
+        border: 2px dashed #cbd5e1;
+        border-radius: 16px;
+        background: #f8fafc;
+        text-align: center;
+        cursor: pointer;
+        transition: all .2s ease;
+    }
+
+    .upload-dropzone:hover,
+    .upload-dropzone.drag-over {
+        border-color: #1e40af;
+        background: #eff6ff;
+    }
+
+    .upload-dropzone.has-file {
+        border-style: solid;
+        border-color: #10b981;
+        background: #f0fdf4;
+    }
+
+    .upload-icon {
+        display: grid;
+        width: 65px;
+        height: 65px;
+        margin: 0 auto 17px;
+        place-items: center;
+        color: #1e40af;
+        background: #eff6ff;
+        border-radius: 18px;
+        font-size: 29px;
+    }
+
+    .upload-title {
+        margin-bottom: 7px;
+        color: #172033;
+        font-size: 17px;
+        font-weight: 750;
+    }
+
+    .upload-description {
+        margin-bottom: 17px;
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    .upload-browse {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 10px 17px;
+        color: #fff;
+        background: #1e40af;
+        border: 0;
+        border-radius: 9px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .upload-browse:hover {
+        background: #1e3a8a;
+    }
+
+    .upload-formats {
+        margin-top: 15px;
+        color: #94a3b8;
+        font-size: 10px;
+    }
+
+    .preview-wrapper {
+        display: none;
+        margin-top: 22px;
+        padding: 16px;
+        background: #f8fafc;
+        border: 1px solid #e8edf4;
+        border-radius: 14px;
+    }
+
+    .preview-wrapper.visible {
+        display: block;
+        animation: previewEnter .25s ease;
+    }
+
+    @keyframes previewEnter {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .preview-image {
+        display: block;
+        width: 100%;
+        max-height: 310px;
+        object-fit: contain;
+        border-radius: 10px;
+        background: #fff;
+    }
+
+    .preview-filename {
+        overflow-wrap: anywhere;
+        color: #172033;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .preview-filesize {
+        color: #64748b;
+        font-size: 11px;
+    }
+
+    .upload-error {
+        display: none;
+        margin-top: 16px;
+        padding: 12px 14px;
+        color: #b91c1c;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 10px;
+        font-size: 12px;
+    }
+
+    .upload-error.visible {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+    }
+
+    .upload-success {
+        display: none;
+        margin-top: 15px;
+        padding: 12px 14px;
+        color: #047857;
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        border-radius: 10px;
+        font-size: 12px;
+    }
+
+    .upload-progress {
+        display: none;
+        margin-top: 20px;
+    }
+
+    .upload-progress.visible {
+        display: block;
+    }
+
+    .upload-progress .progress {
+        height: 8px;
+        overflow: hidden;
+        background: #e2e8f0;
+        border-radius: 20px;
+    }
+
+    .upload-progress .progress-bar {
+        width: 100%;
+        background: linear-gradient(90deg, #1e40af, #10b981, #1e40af);
+        background-size: 200% 100%;
+        animation: progressMove 1.2s linear infinite;
+    }
+
+    @keyframes progressMove {
+        from { background-position: 100% 0; }
+        to { background-position: -100% 0; }
+    }
+
+    .upload-submit {
+        display: flex;
+        width: 100%;
+        min-height: 48px;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        margin-top: 22px;
+        color: #fff;
+        background: #1e40af;
+        border: 0;
+        border-radius: 11px;
+        font-size: 13px;
+        font-weight: 750;
+        transition: all .2s ease;
+    }
+
+    .upload-submit:hover:not(:disabled) {
+        background: #1e3a8a;
+        transform: translateY(-1px);
+    }
+
+    .upload-submit:disabled {
+        opacity: .55;
+        cursor: not-allowed;
+    }
+
+    .upload-side-card {
+        padding: 22px;
+        background: #fff;
+        border: 1px solid #e8edf4;
+        border-radius: 16px;
+        box-shadow: 0 5px 18px rgba(15, 23, 42, .035);
+    }
+
+    .upload-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .upload-step-icon {
+        display: grid;
+        flex: 0 0 34px;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        color: #1e40af;
+        background: #eff6ff;
+        border-radius: 10px;
+        font-size: 15px;
+    }
+
+    .upload-step strong {
+        display: block;
+        color: #172033;
+        font-size: 12px;
+    }
+
+    .upload-step p {
+        margin: 3px 0 0;
+        color: #64748b;
+        font-size: 11px;
+    }
+
+    .upload-loading-spinner {
+        width: 17px;
+        height: 17px;
+        border: 2px solid rgba(255,255,255,.4);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin .7s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 575px) {
+        .upload-card {
+            padding: 17px;
+        }
+
+        .upload-dropzone {
+            min-height: 250px;
+            padding: 20px 12px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="upload-layout">
+
+    <!-- PAGE HEADER -->
+    <div class="page-heading">
+        <div class="page-eyebrow">AI-powered food quality analysis</div>
+        <h1 class="page-title">Upload Potato Chips Image</h1>
+        <p class="page-subtitle">
+            Upload a clear potato chips image to estimate its acrylamide concentration and grade.
+        </p>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- UPLOAD FORM -->
+        <div class="col-lg-8">
+            <div class="upload-card">
+
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <div>
+                        <h5 class="card-heading">Image Upload</h5>
+                        <p class="card-subheading mb-0">
+                            Select an image from your device
+                        </p>
+                    </div>
+
+                    <span class="soft-badge badge-blue">
+                        <i class="bi bi-shield-check"></i> Secure validation
+                    </span>
+                </div>
+
+                <form id="uploadForm"
+                      enctype="multipart/form-data"
+                      novalidate>
+
+                    <!-- DROPZONE -->
+                    <div class="upload-dropzone"
+                         id="dropZone"
+                         role="button"
+                         tabindex="0"
+                         aria-label="Choose or drop a potato chips image">
+
+                        <div id="dropContent">
+                            <div class="upload-icon">
+                                <i class="bi bi-cloud-arrow-up"></i>
+                            </div>
+
+                            <h5 class="upload-title">
+                                Drag and drop your image here
+                            </h5>
+
+                            <p class="upload-description">
+                                Or browse files from your device
+                            </p>
+
+                            <button type="button"
+                                    class="upload-browse"
+                                    id="browseButton">
+                                <i class="bi bi-folder2-open"></i>
+                                Browse Files
+                            </button>
+
+                            <div class="upload-formats">
+                                Supported formats: JPG, JPEG, PNG, WEBP
+                                <br>
+                                Maximum size: {{ (config.MAX_CONTENT_LENGTH / (1024 * 1024))|round|int }} MB
+                            </div>
+                        </div>
+
+                        <input type="file"
+                               id="imageInput"
+                               name="image"
+                               accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                               hidden>
+                    </div>
+
+                    <!-- IMAGE PREVIEW -->
+                    <div class="preview-wrapper" id="previewWrapper">
+
+                        <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                            <div>
+                                <div class="fw-bold small text-dark">
+                                    <i class="bi bi-image text-primary me-1"></i>
+                                    Selected Image
+                                </div>
+                                <div class="text-secondary" style="font-size:10px;">
+                                    Preview before analysis
+                                </div>
+                            </div>
+
+                            <span class="soft-badge badge-green">
+                                <i class="bi bi-check-circle"></i> Ready
+                            </span>
+                        </div>
+
+                        <img id="previewImage"
+                             class="preview-image"
+                             src=""
+                             alt="Selected potato chips preview">
+
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-3">
+                            <div class="flex-grow-1">
+                                <div class="preview-filename" id="previewFilename"></div>
+                                <div class="preview-filesize" id="previewFilesize"></div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="button"
+                                        class="btn btn-outline-custom"
+                                        id="replaceButton">
+                                    <i class="bi bi-arrow-repeat me-1"></i> Replace
+                                </button>
+
+                                <button type="button"
+                                        class="btn btn-outline-danger btn-sm"
+                                        id="clearButton">
+                                    <i class="bi bi-trash3 me-1"></i> Clear
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- ERROR -->
+                    <div class="upload-error" id="uploadError" role="alert">
+                        <i class="bi bi-exclamation-circle-fill"></i>
+                        <span id="errorMessage"></span>
+                    </div>
+
+                    <!-- SUCCESS -->
+                    <div class="upload-success" id="uploadSuccess">
+                        <i class="bi bi-check-circle-fill me-1"></i>
+                        Image validated successfully.
+                    </div>
+
+                    <!-- PROGRESS -->
+                    <div class="upload-progress" id="uploadProgress">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="small fw-semibold text-dark" id="progressText">
+                                Processing image...
+                            </span>
+                            <span class="small text-secondary" id="progressPercent">
+                                Please wait
+                            </span>
+                        </div>
+
+                        <div class="progress">
+                            <div class="progress-bar"></div>
+                        </div>
+
+                        <p class="text-secondary mt-2 mb-0" style="font-size:10px;">
+                            The AI model is analyzing your image. Please do not close this page.
+                        </p>
+                    </div>
+
+                    <!-- SUBMIT -->
+                    <button type="submit"
+                            class="upload-submit"
+                            id="submitButton"
+                            disabled>
+                        <i class="bi bi-stars"></i>
+                        Analyze with PotatoGuard AI
+                    </button>
+
+                </form>
+
+            </div>
+        </div>
+
+
+        <!-- SIDE INFORMATION -->
+        <div class="col-lg-4">
+
+            <div class="upload-side-card mb-4">
+                <h5 class="card-heading">How It Works</h5>
+                <p class="card-subheading">
+                    Three simple steps to analyze your sample
+                </p>
+
+                <div class="upload-step">
+                    <div class="upload-step-icon">
+                        <i class="bi bi-cloud-upload"></i>
+                    </div>
+                    <div>
+                        <strong>1. Upload Image</strong>
+                        <p>Select a clear potato chips image from your device.</p>
+                    </div>
+                </div>
+
+                <div class="upload-step">
+                    <div class="upload-step-icon">
+                        <i class="bi bi-cpu"></i>
+                    </div>
+                    <div>
+                        <strong>2. AI Analysis</strong>
+                        <p>The application processes the image using its prediction pipeline.</p>
+                    </div>
+                </div>
+
+                <div class="upload-step">
+                    <div class="upload-step-icon">
+                        <i class="bi bi-clipboard-data"></i>
+                    </div>
+                    <div>
+                        <strong>3. View Results</strong>
+                        <p>View the estimated acrylamide value and project-defined grade.</p>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="upload-side-card mb-4">
+                <h5 class="card-heading">
+                    <i class="bi bi-image text-primary me-2"></i>
+                    Image Guidelines
+                </h5>
+
+                <ul class="list-unstyled mt-3 mb-0">
+                    <li class="d-flex gap-2 mb-3">
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                        <span class="small text-secondary">Use a clear, well-lit image.</span>
+                    </li>
+                    <li class="d-flex gap-2 mb-3">
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                        <span class="small text-secondary">Keep the potato chips visible.</span>
+                    </li>
+                    <li class="d-flex gap-2 mb-3">
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                        <span class="small text-secondary">Avoid excessive blur and shadows.</span>
+                    </li>
+                    <li class="d-flex gap-2">
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                        <span class="small text-secondary">Use JPG, JPEG, PNG or WEBP.</span>
+                    </li>
+                </ul>
+            </div>
+
+
+            <div class="disclaimer-panel">
+                <i class="bi bi-info-circle"></i>
+                <div>
+                    <strong>Research disclaimer</strong>
+                    <p class="mb-0 mt-1">
+                        Image-based predictions are estimates, not laboratory measurements.
+                        Actual acrylamide concentration requires laboratory testing.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+(() => {
+    "use strict";
+
+    const form = document.getElementById("uploadForm");
+    const input = document.getElementById("imageInput");
+    const dropZone = document.getElementById("dropZone");
+    const browseButton = document.getElementById("browseButton");
+    const replaceButton = document.getElementById("replaceButton");
+    const clearButton = document.getElementById("clearButton");
+    const previewWrapper = document.getElementById("previewWrapper");
+    const previewImage = document.getElementById("previewImage");
+    const previewFilename = document.getElementById("previewFilename");
+    const previewFilesize = document.getElementById("previewFilesize");
+    const submitButton = document.getElementById("submitButton");
+    const uploadError = document.getElementById("uploadError");
+    const errorMessage = document.getElementById("errorMessage");
+    const uploadSuccess = document.getElementById("uploadSuccess");
+    const uploadProgress = document.getElementById("uploadProgress");
+    const progressText = document.getElementById("progressText");
+    const progressPercent = document.getElementById("progressPercent");
+
+    const maxBytes = Number("{{ config.MAX_CONTENT_LENGTH }}");
+    const maxMB = maxBytes / (1024 * 1024);
+    const allowedExtensions = ["jpg", "jpeg", "png", "webp"];
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+
+    let selectedFile = null;
+    let previewUrl = null;
+    let isSubmitting = false;
+
+    function showError(message) {
+        errorMessage.textContent = message;
+        uploadError.classList.add("visible");
+        uploadSuccess.style.display = "none";
+    }
+
+    function clearError() {
+        uploadError.classList.remove("visible");
+        errorMessage.textContent = "";
+    }
+
+    function releasePreview() {
+        if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+            previewUrl = null;
+        }
+    }
+
+    function resetSelection() {
+        selectedFile = null;
+        input.value = "";
+        releasePreview();
+
+        previewImage.removeAttribute("src");
+        previewWrapper.classList.remove("visible");
+        dropZone.classList.remove("has-file");
+
+        submitButton.disabled = true;
+        uploadSuccess.style.display = "none";
+        uploadProgress.classList.remove("visible");
+        clearError();
+    }
+
+    function formatSize(bytes) {
+        return bytes < 1024 * 1024
+            ? (bytes / 1024).toFixed(1) + " KB"
+            : (bytes / (1024 * 1024)).toFixed(2) + " MB";
+    }
+
+    function validateFile(file) {
+        if (!file) {
+            return "Please select an image first.";
+        }
+
+        const extension = file.name.split(".").pop().toLowerCase();
+
+        if (!allowedExtensions.includes(extension)) {
+            return "Unsupported file format. Please choose JPG, JPEG, PNG or WEBP.";
+        }
+
+        if (file.type && !allowedTypes.includes(file.type)) {
+            return "Invalid image type. Please select a valid JPG, PNG or WEBP image.";
+        }
+
+        if (file.size === 0) {
+            return "The selected file is empty.";
+        }
+
+        if (file.size > maxBytes) {
+            return `File is too large. Maximum allowed size is ${maxMB.toFixed(0)} MB.`;
+        }
+
+        return null;
+    }
+
+    function selectFile(file) {
+        if (isSubmitting) return;
+
+        clearError();
+        uploadSuccess.style.display = "none";
+
+        const validationError = validateFile(file);
+
+        if (validationError) {
+            resetSelection();
+            showError(validationError);
+            return;
+        }
+
+        resetSelection();
+
+        selectedFile = file;
+        previewUrl = URL.createObjectURL(file);
+
+        previewImage.src = previewUrl;
+        previewFilename.textContent = file.name;
+        previewFilesize.textContent = formatSize(file.size);
+
+        previewWrapper.classList.add("visible");
+        dropZone.classList.add("has-file");
+        uploadSuccess.style.display = "block";
+        submitButton.disabled = false;
+    }
+
+    function openFilePicker() {
+        if (!isSubmitting) {
+            input.click();
+        }
+    }
+
+    browseButton.addEventListener("click", openFilePicker);
+    replaceButton.addEventListener("click", openFilePicker);
+
+    dropZone.addEventListener("click", (event) => {
+        if (event.target.closest("button")) return;
+        openFilePicker();
+    });
+
+    dropZone.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openFilePicker();
+        }
+    });
+
+    input.addEventListener("change", () => {
+        if (input.files.length > 0) {
+            selectFile(input.files[0]);
+        }
+    });
+
+    clearButton.addEventListener("click", resetSelection);
+
+    ["dragenter", "dragover"].forEach(eventName => {
+        dropZone.addEventListener(eventName, event => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (!isSubmitting) {
+                dropZone.classList.add("drag-over");
+            }
+        });
+    });
+
+    ["dragleave", "drop"].forEach(eventName => {
+        dropZone.addEventListener(eventName, event => {
+            event.preventDefault();
+            event.stopPropagation();
+            dropZone.classList.remove("drag-over");
+        });
+    });
+
+    dropZone.addEventListener("drop", event => {
+        if (isSubmitting) return;
+
+        const files = event.dataTransfer.files;
+
+        if (files.length > 0) {
+            selectFile(files[0]);
+        }
+    });
+
+    function setLoading(loading) {
+        isSubmitting = loading;
+        submitButton.disabled = loading;
+
+        browseButton.disabled = loading;
+        replaceButton.disabled = loading;
+        clearButton.disabled = loading;
+
+        if (loading) {
+            submitButton.innerHTML =
+                '<span class="upload-loading-spinner"></span> Analyzing Image...';
+
+            uploadProgress.classList.add("visible");
+            progressText.textContent = "AI model is processing your image";
+            progressPercent.textContent = "Please wait";
+        } else {
+            submitButton.innerHTML =
+                '<i class="bi bi-stars"></i> Analyze with PotatoGuard AI';
+
+            uploadProgress.classList.remove("visible");
+            submitButton.disabled = !selectedFile;
+        }
+    }
+
+    form.addEventListener("submit", async event => {
+        event.preventDefault();
+
+        if (isSubmitting) return;
+
+        if (!selectedFile) {
+            showError("Please select a potato chips image before continuing.");
+            return;
+        }
+
+        const validationError = validateFile(selectedFile);
+
+        if (validationError) {
+            showError(validationError);
+            return;
+        }
+
+        clearError();
+        setLoading(true);
+
+        const formData = new FormData();
+        formData.append("image", selectedFile, selectedFile.name);
+
+        try {
+            const response = await fetch("/api/predict", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "Accept": "application/json"
+                }
+            });
+
+            const result = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(
+                    result.error || `Prediction request failed (${response.status}).`
+                );
+            }
+
+            if (!result.success) {
+                throw new Error(result.error || "Prediction could not be completed.");
+            }
+
+            progressText.textContent = "Analysis completed";
+            progressPercent.textContent = "100%";
+
+            window.location.assign("/results");
+
+        } catch (error) {
+            console.error("PotatoGuard upload error:", error);
+
+            setLoading(false);
+
+            showError(
+                error.message ||
+                "Unable to analyze this image. Please try again."
+            );
+        }
+    });
+
+    window.addEventListener("beforeunload", releasePreview);
+
+})();
+</script>
+{% endblock %}

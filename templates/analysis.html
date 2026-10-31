@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Image Analysis | PotatoGuard AI{% endblock %}
+{% block content %}
+<h1>Image analysis</h1>
+<p>Colour and brightness describe visual appearance. They are not laboratory acrylamide measurements.</p>
+{% if result %}
+    <div class="row g-4">
+        <div class="col-lg-6">
+            {% if result.preview_jpeg_base64 %}
+                <img class="img-fluid rounded" alt="Original, enhanced, masked, overlay" src="data:image/jpeg;base64,{{ result.preview_jpeg_base64 }}">
+                <p class="small text-muted mt-2">Left to right: original, enhanced preview, segmented chip, overlay.</p>
+            {% endif %}
+        </div>
+        <div class="col-lg-6">
+            <div class="panel">
+                <h2>Extracted features</h2>
+                <table class="table">
+                    <tbody>
+                        <tr><th>Mean R</th><td>{{ result.features.mean_red }}</td></tr>
+                        <tr><th>Mean G</th><td>{{ result.features.mean_green }}</td></tr>
+                        <tr><th>Mean B</th><td>{{ result.features.mean_blue }}</td></tr>
+                        <tr><th>Mean H</th><td>{{ result.features.mean_hue }}</td></tr>
+                        <tr><th>Mean S</th><td>{{ result.features.mean_saturation }}</td></tr>
+                        <tr><th>Mean V</th><td>{{ result.features.mean_value }}</td></tr>
+                        <tr><th>Brightness</th><td>{{ result.features.brightness }}</td></tr>
+                        <tr><th>Saturation</th><td>{{ result.features.saturation }}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <p>Run a prediction first so analysis has an image to describe. <a href="{{ url_for('upload') }}">Upload</a></p>
+{% endif %}
+{% endblock %}

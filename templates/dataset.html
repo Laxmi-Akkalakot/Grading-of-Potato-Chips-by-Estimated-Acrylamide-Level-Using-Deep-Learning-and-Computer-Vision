@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Dataset | PotatoGuard AI{% endblock %}
+{% block content %}
+<h1>Dataset overview</h1>
+<p>All counts are read from <code>data/labels.csv</code>. Laboratory values were not invented.</p>
+<div class="row g-3 mb-4">
+    <div class="col-md-4"><div class="stat-card"><span>Images</span><strong>{{ overview.total_images }}</strong></div></div>
+    <div class="col-md-4"><div class="stat-card"><span>Min µg/kg</span><strong>{{ overview.acrylamide_min | round(1) }}</strong></div></div>
+    <div class="col-md-4"><div class="stat-card"><span>Max µg/kg</span><strong>{{ overview.acrylamide_max | round(1) }}</strong></div></div>
+</div>
+<div class="panel">
+    <h2>Project-defined grades</h2>
+    <table class="table">
+        <thead><tr><th>Grade</th><th>Images</th><th>Value range (µg/kg)</th></tr></thead>
+        <tbody>
+            <tr><td>Low</td><td>{{ overview.class_counts["Low"] }}</td><td>Below 500</td></tr>
+            <tr><td>Medium</td><td>{{ overview.class_counts["Medium"] }}</td><td>500 to below 1000</td></tr>
+            <tr><td>High</td><td>{{ overview.class_counts["High"] }}</td><td>1000 to below 2000</td></tr>
+            <tr><td>Very High</td><td>{{ overview.class_counts["Very High"] }}</td><td>2000 and above</td></tr>
+        </tbody>
+    </table>
+    <p class="small text-muted">These bands are project categories, not official regulatory limits.</p>
+</div>
+{% endblock %}
